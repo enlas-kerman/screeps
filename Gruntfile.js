@@ -5,14 +5,24 @@ module.exports = function(grunt) {
 
     grunt.initConfig({
 
+        clean: {
+            'dist': ['dist']
+        },
+
+
         copy: {
             js: {
                 expand: true,
                 cwd: 'src/',
                 src: ['**/*'],
-                dest: 'dist/'
+                dest: 'dist/',
+                filter: 'isFile',
+                rename: function(dest, src) {
+                    return dest + src.replace(/\//g,'_');
+                }
             }
         },
+
 
         screeps: {
             options: {
@@ -22,18 +32,25 @@ module.exports = function(grunt) {
                 ptr: config.ptr
             },
             dist: {
-                src: ['dist/*.js']
+                files: [{
+                    expand: true,
+                    cwd: 'dist/',
+                    src: ['**/*.js'],
+                    flatten: true
+                }]
             }
         }
 
     });
 
     // load plugins
+    grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-screeps');
 
     // register tasks
-    grunt.registerTask('build', [
+    grunt.registerTask('default', [
+        'clean',
         'copy:js',
         'screeps'
     ]);
