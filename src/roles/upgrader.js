@@ -1,4 +1,12 @@
 
+const ROLE = 'upgrader v1';
+const UPGRADER_CONFIG = [WORK, CARRY, MOVE];
+
+
+if (typeof Memory.lastUpgraderIndex === 'undefined') {
+    Memory.lastUpgraderIndex = 0;
+}
+
 
 function findNearestRuin(ruins, creep) {
     let minCost = 1000000;
@@ -16,39 +24,53 @@ function findNearestRuin(ruins, creep) {
 }
 
 
+module.exports = {
 
-module.exports.Upgrader = function(creep) {
+    ROLE: ROLE,
 
-    return {
-        update: function(mara, ruins) {
-
-            let nearestRuin = findNearestRuin(ruins, creep);
-            if (creep.store.getFreeCapacity() > 0 && creep.withdraw(nearestRuin, RESOURCE_ENERGY, creep.store.getFreeCapacity()) != ERR_NOT_IN_RANGE) {
-                let amount = Math.min(creep.store.getFreeCapacity(), nearestRuin.store.getUsedCapacity());
-                let err = creep.withdraw(nearestRuin, RESOURCE_ENERGY, amount);
-                if (err != OK && err != ERR_NOT_IN_RANGE) {
-                    console.log('creep[' + creep.name + '] error withdrawing: ' + err);
-                }
-            } else {
-                if (creep.store.getFreeCapacity() == creep.store.getCapacity()) {
-                    creep.moveTo(nearestRuin);
-                } else {
+    Upgrader: function(creep) {
+        return {
+            update: function(mara, ruins) {
     
-                    if (mara.energy < mara.energyCapacity) {
-                        if (creep.transfer(mara, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(mara);
-                        }
-                    } else {
-                        if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(creep.room.controller);
-                        }
+                let nearestRuin = findNearestRuin(ruins, creep);
+                if (creep.store.getFreeCapacity() > 0 && creep.withdraw(nearestRuin, RESOURCE_ENERGY, creep.store.getFreeCapacity()) != ERR_NOT_IN_RANGE) {
+                    let amount = Math.min(creep.store.getFreeCapacity(), nearestRuin.store.getUsedCapacity());
+                    let err = creep.withdraw(nearestRuin, RESOURCE_ENERGY, amount);
+                    if (err != OK && err != ERR_NOT_IN_RANGE) {
+                        console.log('creep[' + creep.name + '] error withdrawing: ' + err);
                     }
+                } else {
+                    if (creep.store.getFreeCapacity() == creep.store.getCapacity()) {
+                        creep.moveTo(nearestRuin);
+                    } else {
+        
+                        if (mara.energy < mara.energyCapacity) {
+                            if (creep.transfer(mara, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.moveTo(mara);
+                            }
+                        } else {
+                            if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                                creep.moveTo(creep.room.controller);
+                            }
+                        }
+        
+                    }
+        
+                }           
     
-                }
-    
-            }           
-
+            }
         }
+    },
+
+
+    spawnUpgrader: function(spawn) {
+        let index = Memory.lastUpgraderIndex++;
+        spawn.spawnCreep(UPGRADER_CONFIG, 'H' + index, {
+            memory: {
+                role: ROLE
+            }
+        });
     }
 
 };
+
