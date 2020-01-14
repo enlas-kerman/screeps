@@ -145,13 +145,15 @@ module.exports = {
 
 
     spawnUpgrader: function(spawn) {
-        let index = Memory.lastUpgraderIndex++;
-        spawn.spawnCreep(UPGRADER_CONFIG, 'H' + index, {
+        let err = spawn.spawnCreep(UPGRADER_CONFIG, 'H' + Memory.lastUpgraderIndex, {
             memory: {
                 role: ROLE,
                 state: ST_INIT
             }
         });
+        if (err == OK) {
+            Memory.lastUpgraderIndex++;
+        }
     }
 
 };

@@ -97,13 +97,15 @@ module.exports = {
 
 
     spawnBuilder: (spawn) => {
-        let index = Memory.lastBuilderIndex++;
-        spawn.spawnCreep(BUILDER_CONFIG, 'B' + index, {
+        let err = spawn.spawnCreep(BUILDER_CONFIG, 'B' + Memory.lastBuilderIndex, {
             memory: {
                 role: ROLE,
                 state: ST_INIT
             }
         });
+        if (err == OK) {
+            Memory.lastBuilderIndex++;
+        }
     }
 
 }
