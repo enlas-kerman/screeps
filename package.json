@@ -23,6 +23,6 @@
     "grunt-contrib-jshint": "^2.1.0",
     "grunt-contrib-nodeunit": "^2.0.0",
     "grunt-contrib-uglify": "^4.0.1",
-    "grunt-screeps": "^1.4.0"
+    "grunt-screeps": "file:../grunt-screeps"
   }
 }
