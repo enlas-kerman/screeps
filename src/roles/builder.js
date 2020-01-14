@@ -41,7 +41,7 @@ const findBestSource = (room, creep) => {
 
 module.exports = {
 
-    ROLE: ROLE,
+    ROLE_BUILDER: ROLE,
 
     Builder: function(creep) {
 

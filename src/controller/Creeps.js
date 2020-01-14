@@ -1,5 +1,5 @@
-let UpgraderRole = require('roles_upgrader');
-let BuilderRole = require('roles_builder');
+let { Upgrader, spawnUpgrader, ROLE_UPGRADER } = require('roles_upgrader');
+let { Builder, spawnBuilder, ROLE_BUILDER } = require('roles_builder');
 
 let MAX_UPGRADERS = 8;
 let MAX_BUILDERS = 5;
@@ -8,7 +8,7 @@ let MAX_BUILDERS = 5;
 module.exports = {
 
 
-    Controller: function(game, memory) {
+    Creeps: function(game, memory) {
 
         const cleanupDeadCreeps = () => {
             for (let name in memory.creeps) {
@@ -28,12 +28,12 @@ module.exports = {
             for (let name in gameCreeps) {
                 let creep = gameCreeps[name];
                 switch(creep.memory.role) {
-                    case BuilderRole.ROLE:
-                        creeps.builders.push(new BuilderRole.Builder(creep));
+                    case ROLE_BUILDER:
+                        creeps.builders.push(new Builder(creep));
                         break;
-                    case UpgraderRole.ROLE:
+                    case ROLE_UPGRADER:
                     default:
-                        creeps.upgraders.push(new UpgraderRole.Upgrader(creep));
+                        creeps.upgraders.push(new Upgrader(creep));
                 }        
             }
             return creeps;
@@ -45,20 +45,20 @@ module.exports = {
                 cleanupDeadCreeps();
 
                 let creeps = getCreeps(game.creeps);
-                // console.log('Number of upgraders: ' + creeps.upgraders.length);
-                // console.log('Number of builders: ' + creeps.builders.length);
+                console.log('Number of upgraders: ' + creeps.upgraders.length);
+                console.log('Number of builders: ' + creeps.builders.length);
             
                 let mara = Game.spawns['MARA'];
 
                 if (creeps.builders.length < MAX_BUILDERS) {
                     if (mara.isActive() && mara.spawning == null) {
-                        BuilderRole.spawnBuilder(mara);
+                        spawnBuilder(mara);
                     }
                 }
             
                 if (creeps.upgraders.length < MAX_UPGRADERS) {
                     if (mara.isActive() && mara.spawning == null) {
-                        UpgraderRole.spawnUpgrader(mara);
+                        spawnUpgrader(mara);
                     }
                 }
             
