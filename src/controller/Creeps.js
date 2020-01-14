@@ -45,8 +45,8 @@ module.exports = {
                 cleanupDeadCreeps();
 
                 let creeps = getCreeps(game.creeps);
-                console.log('Number of upgraders: ' + creeps.upgraders.length);
-                console.log('Number of builders: ' + creeps.builders.length);
+                // console.log('Number of upgraders: ' + creeps.upgraders.length);
+                // console.log('Number of builders: ' + creeps.builders.length);
             
                 let mara = Game.spawns['MARA'];
 
