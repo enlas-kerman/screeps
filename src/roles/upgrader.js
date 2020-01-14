@@ -12,12 +12,10 @@ function findNearestRuin(ruins, creep) {
     let minCost = 1000000;
     let minCostRuin = null;
     ruins.forEach((ruin) => {
-        if (ruin.store.getUsedCapacity() > 0) {
-            let path = PathFinder.search(creep.pos, ruin);
-            if (path.cost <= minCost) {
-                minCost = path.cost;
-                minCostRuin = ruin;
-            }
+        let path = PathFinder.search(creep.pos, ruin);
+        if (path.cost <= minCost) {
+            minCost = path.cost;
+            minCostRuin = ruin;
         }
     });
     return minCostRuin;

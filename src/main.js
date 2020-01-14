@@ -3,35 +3,7 @@ let BuilderRole = require('roles_builder');
 
 
 let MAX_UPGRADERS = 8;
-let MAX_BUILDERS = 2;
-
-
-function getCreeps (gameCreeps) {
-    let creeps = {
-        upgraders: [],
-        builders: []
-    };
-    for (let name in Game.creeps) {
-        let creep = Game.creeps[name];
-        if (creep.memory.role === BuilderRole.ROLE) {
-            creeps.builders.push(new BuilderRole.Builder(creep));
-        } else {
-            creeps.upgraders.push(new UpgraderRole.Upgrader(creep));
-        }
-    }
-    return creeps;
-}
-
-
-const getCreepRole = (creep) => {
-    switch(creep.memory.role) {
-        case BuilderRole.ROLE:
-            return new BuilderRole.Builder(creep);
-        case UpgraderRole.ROLE:
-        default:
-            return new UpgraderRole.Upgrader(creep);
-    }
-};
+let MAX_BUILDERS = 5;
 
 
 const cleanupDeadCreeps = () => {
@@ -44,15 +16,32 @@ const cleanupDeadCreeps = () => {
 };
 
 
+function getCreeps (gameCreeps) {
+    let creeps = {
+        upgraders: [],
+        builders: []
+    };
+    for (let name in Game.creeps) {
+        let creep = Game.creeps[name];
+        switch(creep.memory.role) {
+            case BuilderRole.ROLE:
+                creeps.builders.push(new BuilderRole.Builder(creep));
+                break;
+            case UpgraderRole.ROLE:
+            default:
+                creeps.upgraders.push(new UpgraderRole.Upgrader(creep));
+        }        
+    }
+    return creeps;
+};
+
+
 module.exports.loop = () => {
     
     let mara = Game.spawns['MARA'];
-    let ruins = mara.room.find(FIND_RUINS);
+    let ruins = mara.room.find(FIND_RUINS).filter(ruin => ruin.store.getUsedCapacity() > 0);
     
     cleanupDeadCreeps();
-
-    let upgraders = [];
-    let builders = [];
 
     let creeps = getCreeps(Game.creeps);
     console.log('Number of upgraders: ' + creeps.upgraders.length);
@@ -61,7 +50,7 @@ module.exports.loop = () => {
     if (creeps.builders.length < MAX_BUILDERS) {
         if (mara.isActive() && mara.spawning == null) {
             BuilderRole.spawnBuilder(mara);
-        }        
+        }
     }
 
     if (creeps.upgraders.length < MAX_UPGRADERS) {
@@ -70,10 +59,13 @@ module.exports.loop = () => {
         }
     }
 
-    for (let name in Game.creeps) {
-        let creep = Game.creeps[name];
-        var role = getCreepRole(creep);
-        role.update(mara, ruins);
-    }
+    creeps.upgraders.forEach((upgrader) => {
+        upgrader.update(mara, ruins);
+    });
+
+    creeps.builders.forEach((builder) => {
+        builder.update();
+    });
+
     
 }
