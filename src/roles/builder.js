@@ -1,10 +1,13 @@
 
 const ROLE = 'builder';
-const BUILDER_CONFIG = [WORK, CARRY, MOVE];
+const BUILDER_CONFIG = [WORK, WORK, CARRY, MOVE, MOVE];
 
 const ST_INIT = 0;
 const ST_HARVESTING = 1;
 const ST_BUILDING = 2;
+const ST_REPAIRING = 3;
+
+const ROADS_TICS_REPAIR_THRESHOLD = 0.85;
 
 
 if (typeof Memory.lastBuilderIndex === 'undefined') {
@@ -45,9 +48,41 @@ module.exports = {
 
     Builder: function(creep) {
 
+        const findRoadsNeedingRepair = (room) => {
+            return room.find(FIND_STRUCTURES, {
+                filter: (s) => {
+                    // repair once a roads hits drop below 85% max
+                    return (s.structureType == STRUCTURE_ROAD) && ((s.hits / s.hitsMax) < ROADS_TICS_REPAIR_THRESHOLD);
+                }
+            });
+        }
+
+
+        const beginDelivery = (room) => {
+            let roads = findRoadsNeedingRepair(room);
+            if (roads.length > 0) {
+                creep.memory.state = ST_REPAIRING;
+                let road = roads[Math.floor(Math.random() * roads.length)];
+                creep.memory.targetId = road.id;
+                return;
+            }
+
+            let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
+            if (sites.length > 0) {
+                creep.memory.state = ST_BUILDING;
+                creep.memory.targetId = sites[0].id;
+                return;
+            }
+
+            // if nobody to delivery energy to, go fill up on energy
+            creep.memory.state = ST_HARVESTING;
+        }
+
+
         const doStateInit = () => {
             creep.memory.state = ST_HARVESTING;
         }
+
 
         const doStateHarvesting = () => {
             if (creep.store.getFreeCapacity() > 0) {
@@ -60,23 +95,66 @@ module.exports = {
                     console.log('Builder unable to move because no source found.');
                 }
             } else {
-                creep.memory.state = ST_BUILDING;
+                beginDelivery(creep.room);
             }
         }
+
 
         const doStateBuilding = () => {
             let room = creep.room;
-            let sites = room.find(FIND_MY_CONSTRUCTION_SITES);
-            if (creep.store.getUsedCapacity() > 0) {
-                if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(sites[0]);
+            if (creep.store.getUsedCapacity() == 0) {
+                creep.memory.state = ST_HARVESTING;
+                return;
+            }
+
+            if (!creep.memory.targetId) {
+                beginDelivery(room);
+                return;
+            }
+
+            let site = Game.getObjectById(creep.memory.targetId);
+
+            if (!site) {
+                beginDelivery(room);
+                return;
+            }
+
+            if (creep.build(site) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(site);
+            }
+
+        }
+
+
+        const doStateRepairing = () => {
+            if (creep.store.getUsedCapacity() == 0) {
+                creep.memory.state = ST_HARVESTING;
+                return;
+            }
+
+            let room = creep.room;
+            if (!creep.memory.targetId) {
+                beginDelivery(room);
+                return;
+            }
+            let structure = Game.getObjectById(creep.memory.targetId);
+            if (!structure) {
+                beginDelivery(room);
+                return;
+            }
+
+            if (structure.hits < structure.hitsMax) {
+                if (creep.repair(structure) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(structure);
                 }
             } else {
-                creep.memory.state = ST_HARVESTING;
+                beginDelivery(room);
             }
         }
 
+
         return {
+
             update: function() {
 
                 switch(creep.memory.state) {
@@ -88,6 +166,9 @@ module.exports = {
                         break;
                     case ST_BUILDING:
                         doStateBuilding();
+                        break;
+                    case ST_REPAIRING:
+                        doStateRepairing();
                         break;
                 }
 

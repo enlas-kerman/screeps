@@ -1,12 +1,12 @@
 
 const ROLE = 'upgrader v1';
-const UPGRADER_CONFIG = [WORK, CARRY, MOVE];
+const UPGRADER_CONFIG = [WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
 
 const ST_INIT = 0;
 const ST_HARVESTING = 1;
 const ST_DELIVERING = 5;
 
-const SPAWN_REFUELING_THRESHOLD = 0.75;
+const SPAWN_REFUELING_THRESHOLD = 1.0;
 
 
 if (typeof Memory.lastUpgraderIndex === 'undefined') {
@@ -39,11 +39,25 @@ module.exports = {
 
 
         const findBestTarget = () => {
+
+            // keep the controller fed
+            if (creep.room.controller.ticksToDowngrade < 10000) {
+                return creep.room.controller;
+            }
+
             let towers = creep.room.find(FIND_MY_STRUCTURES).filter((struct) => {
                 return struct.structureType == STRUCTURE_TOWER && struct.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
             });
             if (towers.length > 0) {
                 return towers[0];
+            }
+
+            // extensions get filled before spawn, b/c spawn can regen on its own if necessary
+            let exts = creep.room.find(FIND_MY_STRUCTURES).filter((struct) => {
+                return struct.structureType == STRUCTURE_EXTENSION && struct.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+            });
+            if (exts.length > 0) {
+                return exts[Math.floor(Math.random() * exts.length)];
             }
 
             let mara = Game.spawns['MARA'];
@@ -90,9 +104,10 @@ module.exports = {
                     return creep.upgradeController(dest);
                 case STRUCTURE_SPAWN:
                 case STRUCTURE_TOWER:
+                case STRUCTURE_EXTENSION:
                     return creep.transfer(dest, RESOURCE_ENERGY);
                 default:
-                    console.error('Unknown structure ' + dest.structureType);
+                    console.log('Unknown structure ' + dest.structureType);
             }
         }
 
