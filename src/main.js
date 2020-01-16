@@ -1,6 +1,6 @@
-
 let { Creeps } = require('controller_Creeps');
 let { Towers } = require('controller_Towers');
+let { Supervisor } = require('task_Supervisor');
 
 
 module.exports.loop = () => {
@@ -10,4 +10,8 @@ module.exports.loop = () => {
     
     let towers = new Towers(Game, Memory);
     towers.update();
+
+    let supervisor = new Supervisor();
+    supervisor.update();
+    
 }

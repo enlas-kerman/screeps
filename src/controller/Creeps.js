@@ -32,7 +32,6 @@ module.exports = {
                         creeps.builders.push(new Builder(creep));
                         break;
                     case ROLE_UPGRADER:
-                    default:
                         creeps.upgraders.push(new Upgrader(creep));
                 }        
             }
