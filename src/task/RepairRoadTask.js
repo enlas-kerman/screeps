@@ -1,74 +1,116 @@
-
-const TASK_REPAIR_ROAD = 'repair road';
-const ROADS_TICS_REPAIR_THRESHOLD = 0.85;
-
-
+const ST_INIT = 0;
+const ST_COLLECT_ENERGY = 1;
+const ST_REPAIR = 2;
 
 
-const findRoadsNeedingRepair = (room) => {
-    return room.find(FIND_STRUCTURES, {
-        filter: (s) => {
-            // repair once a roads hits drop below 85% max
-            return (s.structureType == STRUCTURE_ROAD) && ((s.hits / s.hitsMax) < ROADS_TICS_REPAIR_THRESHOLD);
-        }
-    });
-}
+const Task = function() {
+
+    let _m = {};
 
 
+    const findBestEnergySource = (room, creep) => {
 
-module.exports = function() {
+        let costs = new PathFinder.CostMatrix;
+        room.find(FIND_CREEPS).forEach((creep) => {
+            costs.set(creep.pos.x, creep.pos.y, 0xff);
+        });
     
-    return {
-     
-        analyze: function(room, tasks) {
-        
-            let pending = tasks.pending || {};
-            let terminated = tasks.terminated || {};
-    
-            let newPending = {};
-            let newTerminated = terminated; // terminated tasks are removed by super
-    
-            for (let id in pending) {
-                let task = pending[id];
-                let road = Game.getObjectById(task.roadId);
-                // if a road was fully repaired, terminate the task
-                // otherwise keep the task pending
-                if (road.hits == road.hitsMax) {
-                    newTerminated[id] = task;
-                } else {
-                    newPending[id] = task;
-                }
-            }
-    
-    
-            // find new road tasks
-            let roads = findRoadsNeedingRepair(room);
-            roads.forEach((road) => {
-                // create a task if doesnt already exist
-                let key = 'repair-road-' + road.id;
-                if (!newPending[key]) {
-                    newPending[key] = {
-                        id: key,
-                        type: TASK_REPAIR_ROAD,
-                        roadId: road.id,
-                        baseScore: 1,
-                        minWorkers: 3,
-                        maxWorkers: 5,
-                        assignedWorkers: {}
-                    }
+        let minCost = 1000000;
+        let minCostSource = null;
+        room.find(FIND_SOURCES).forEach((source) => {
+            let ret = PathFinder.search(creep.pos, [{ pos: source.pos, range: 1}], {
+                plainCost: 2,
+                swampCost: 10,
+                roomCallback: () => {
+                    return costs;
                 }
             });
+            if (!ret.incomplete && ret.cost <= minCost) {
+                minCost = ret.cost;
+                minCostSource = source;
+            }
+        });
     
-            console.log('number of roads needing repair: ' + Object.keys(newPending).length);
+        return minCostSource;
+    };
     
-            return {
-                pending: newPending,
-                terminated: newTerminated
-            };            
+
+
+    const doInitState = (worker) => {
+        worker.getTaskData().state = ST_COLLECT_ENERGY;
+    }
+
+
+    const doCollectEnergyState = (worker) => {
+        let creep = worker.getCreep();
+        let data = worker.getTaskData();
+        if (creep.store.getFreeCapacity() > 0) {
+            let source = findBestEnergySource(creep.room, creep);
+            if (source) {
+                if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(source);
+                }
+            }
+        } else {
+            data.state = ST_REPAIR;
+        }
+    }
+
+
+    const doRepairState = (worker) => {
+        let creep = worker.getCreep();
+        if (creep.store.getUsedCapacity() == 0) {
+            creep.memory.state = ST_COLLECT_ENERGY;
+            return;
+        }
+
+        let roadId = _m.memory.roadId;
+        let structure = Game.getObjectById(roadId);
+        if (structure) {
+            if (structure.hits < structure.hitsMax) {
+                if (creep.repair(structure) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(structure);
+                }
+            }
         }
 
     }
 
+
+    return {
+
+        setState: function(state) {
+            _m.memory = state;
+        },
+
+        update: function(worker) {
+            let data = worker.getTaskData();
+            if (!data) {
+                console.log("Warning: clearing data for task " + _m.memory.id);
+                worker.clearTaskData();
+            }
+            data.state = data.state || 0;
+            console.log('debug a ' + worker.getId() + ',' + data.state);
+            switch(data.state) {
+                case ST_INIT:
+                    doInitState(worker);
+                    break;
+                case ST_COLLECT_ENERGY:
+                    doCollectEnergyState(worker);
+                    break;
+                case ST_REPAIR:
+                    doRepairState(worker);
+                    break;
+                default:
+                    console.log('Warning: unknown state ' + data.state);
+                    data.state = ST_INIT;
+                    break;
+            }
+        }
+
+    }
 }
 
-module.exports.TYPE = TASK_REPAIR_ROAD;
+
+Task.TYPE = 'repair road';
+module.exports = Task;

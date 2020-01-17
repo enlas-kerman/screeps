@@ -2,7 +2,7 @@ let { Upgrader, spawnUpgrader, ROLE_UPGRADER } = require('roles_upgrader');
 let { Builder, spawnBuilder, ROLE_BUILDER } = require('roles_builder');
 
 let MAX_UPGRADERS = 5;
-let MAX_BUILDERS = 2;
+let MAX_BUILDERS = 0;
 
 
 module.exports = {

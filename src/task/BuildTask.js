@@ -5,11 +5,11 @@ const TASK_FILL_EXTENSION_ENERGY = 'fill ext energy';
 const TASK_REPAIR_ROAD = 'repair road';
 const TASK_BUILD = 'build';
 
-Memory.tasks = Memory.tasks || {};
-Memory.tasks.pending = Memory.tasks.pending || {};
-Memory.tasks.terminated = Memory.tasks.terminated || {};
-Memory.tasks.pending[TASK_BUILD] = Memory.tasks.pending[TASK_BUILD] || {};
-Memory.tasks.terminated[TASK_BUILD] = Memory.tasks.terminated[TASK_BUILD] || {};
+// Memory.tasks = Memory.tasks || {};
+// Memory.tasks.pending = Memory.tasks.pending || {};
+// Memory.tasks.terminated = Memory.tasks.terminated || {};
+// Memory.tasks.pending[TASK_BUILD] = Memory.tasks.pending[TASK_BUILD] || {};
+// Memory.tasks.terminated[TASK_BUILD] = Memory.tasks.terminated[TASK_BUILD] || {};
 
 
 module.exports = {

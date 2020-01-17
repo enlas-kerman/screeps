@@ -1,8 +1,6 @@
 let Workers = require('task_Workers');
 let Tasks = require('task_Tasks');
 let Strategy = require('strategy_Strategy');
-let { BuildTasks, BuildTask } = require('task_BuildTask');
-let { RepairRoadTasks, RepairRoadTask } = require('task_RepairRoadTask');
 
 
 Memory.supervisor = Memory.supervisor || {};
@@ -39,13 +37,26 @@ module.exports = {
 
         const cleanupTerminatedTasks = () => {
             tasks.getTerminatedTasks().forEach((task) => {
-                console.log('cleaning up task ' + task.id);
                 let assignedWorkers = task.assignedWorkers;
-                console.log('number of assigned: ' + Object.keys(assignedWorkers).length);
                 Object.values(assignedWorkers).forEach((workerId) => {
                     workers.unassign(workerId);
                 });
-                tasks.removeTerminated(task);
+                task.assignedWorkers = {};
+                tasks.removeTask(task);
+            });
+        }
+
+
+        const cleanupDeadWorkers = () => {
+            let deadWorkers = workers.getDeadWorkers();
+            deadWorkers.forEach((deadWorker) => {
+                console.log("Cleaning up dead worker " + deadWorker.id);
+                if (deadWorker.assignedTaskId) {
+                    let task = tasks.getTaskById(deadWorker.assignedTaskId);
+                    if (task.assignedWorkers[deadWorker.id]) {
+                        delete task.assignedWorkers[deadWorker.id];
+                    }
+                }
             });
         }
 
@@ -60,6 +71,8 @@ module.exports = {
                 // unassign work.terminated
                 // assign work.pending if necessary
                 // update workers
+
+                cleanupDeadWorkers();
 
                 tasks.analyze();
 

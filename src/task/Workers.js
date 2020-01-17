@@ -1,12 +1,7 @@
-
 let Worker = require('task_Worker');
 
+const MAX_WORKERS = 2;
 
-Memory.tasks = Memory.tasks || {};
-Memory.tasks.workers = Memory.tasks.workers || {};
-Memory.tasks.spawnQueue = Memory.tasks.spawnQueue || {};
-
-Memory.tasks.workerIndex = Memory.tasks.workerIndex;
 
 if (typeof Memory.nextWorkerId === 'undefined') {
     Memory.nextWorkerId = 0;
@@ -15,9 +10,12 @@ if (typeof Memory.nextWorkerId === 'undefined') {
 
 module.exports = function(creeps, workers) {
 
+    const deadWorkers = [];
+
     for (workerId in workers) {
         if (!creeps[workerId]) {
             console.log('cleaning up worker: ' + workerId);
+            deadWorkers.push(workers[workerId]);
             delete workers[workerId];
         }
     }
@@ -34,6 +32,11 @@ module.exports = function(creeps, workers) {
         },
 
 
+        getDeadWorkers: function() {
+            return deadWorkers;
+        },
+
+
         getUnassignedWorkers: function() {
             let unassigned = [];
             for (id in workers) {
@@ -46,9 +49,18 @@ module.exports = function(creeps, workers) {
         },
 
 
+        assign: function(workerId, taskId) {
+            let worker = new Worker();
+            worker.setState(workers[workerId]);
+            worker.assignToTask(taskId);
+        },
+
+
         unassign: function(workerId) {
             if (workers[workerId]) {
-                workers[workerId].assignedTaskId = null;
+                let worker = new Worker();
+                worker.setState(workers[workerId]);
+                worker.unassign();
             }
         },
 
@@ -73,16 +85,20 @@ module.exports = function(creeps, workers) {
 
         update: function(tasks) {
 
-            Object.values(workers).forEach((worker) => {
-                let workerId = worker.id;
-                if (worker.assignedTaskId != null) {
-                    console.log('updating the worker ' + workerId + ' for task ' + worker.assignedTaskId);
-                    // let task = tasks.getTaskById(worker.assignedTaskId);
-                    // task.update(worker);
+            let worker = new Worker();
+
+            Object.values(workers).forEach((workerMem) => {
+                worker.setState(workerMem);
+                let workerId = worker.getId();
+                let assignedTaskId = worker.getAssignedTaskId();
+                if (assignedTaskId != null) {
+                    //console.log('updating the worker ' + workerId + ' for task ' + assignedTaskId);
+                    let task = tasks.getTaskFor(assignedTaskId);
+                    task.update(worker);
                 }
             });
 
-            if (getWorkerCount() < 1) {
+            if (getWorkerCount() < MAX_WORKERS) {
                 this.spawn();
             }
         }
