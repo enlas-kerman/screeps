@@ -2,99 +2,73 @@
 const TASK_REPAIR_ROAD = 'repair road';
 const ROADS_TICS_REPAIR_THRESHOLD = 0.85;
 
-Memory.tasks = Memory.tasks || {};
-Memory.tasks.pending = Memory.tasks.pending || {};
-Memory.tasks.terminated = Memory.tasks.terminated || {};
-Memory.tasks.pending[TASK_REPAIR_ROAD] = Memory.tasks.pending[TASK_REPAIR_ROAD] || {};
-Memory.tasks.terminated[TASK_REPAIR_ROAD] = Memory.tasks.terminated[TASK_REPAIR_ROAD] || {};
 
 
-module.exports = {
+
+const findRoadsNeedingRepair = (room) => {
+    return room.find(FIND_STRUCTURES, {
+        filter: (s) => {
+            // repair once a roads hits drop below 85% max
+            return (s.structureType == STRUCTURE_ROAD) && ((s.hits / s.hitsMax) < ROADS_TICS_REPAIR_THRESHOLD);
+        }
+    });
+}
 
 
-    RepairRoadTasks: function() {
 
-        const findRoadsNeedingRepair = (room) => {
-            return room.find(FIND_STRUCTURES, {
-                filter: (s) => {
-                    // repair once a roads hits drop below 85% max
-                    return (s.structureType == STRUCTURE_ROAD) && ((s.hits / s.hitsMax) < ROADS_TICS_REPAIR_THRESHOLD);
+module.exports = function() {
+    
+    return {
+     
+        analyze: function(room, tasks) {
+        
+            let pending = tasks.pending || {};
+            let terminated = tasks.terminated || {};
+    
+            let newPending = {};
+            let newTerminated = terminated; // terminated tasks are removed by super
+    
+            for (let id in pending) {
+                let task = pending[id];
+                let road = Game.getObjectById(task.roadId);
+                // if a road was fully repaired, terminate the task
+                // otherwise keep the task pending
+                if (road.hits == road.hitsMax) {
+                    newTerminated[id] = task;
+                } else {
+                    newPending[id] = task;
+                }
+            }
+    
+    
+            // find new road tasks
+            let roads = findRoadsNeedingRepair(room);
+            roads.forEach((road) => {
+                // create a task if doesnt already exist
+                let key = 'repair-road-' + road.id;
+                if (!newPending[key]) {
+                    newPending[key] = {
+                        id: key,
+                        type: TASK_REPAIR_ROAD,
+                        roadId: road.id,
+                        baseScore: 1,
+                        minWorkers: 3,
+                        maxWorkers: 5,
+                        assignedWorkers: {}
+                    }
                 }
             });
+    
+            console.log('number of roads needing repair: ' + Object.keys(newPending).length);
+    
+            return {
+                pending: newPending,
+                terminated: newTerminated
+            };            
         }
-
-
-        return {
-            analyze: function(room) {
-                let roads = findRoadsNeedingRepair(room);
-
-                let currentTasks = Memory.tasks.pending[TASK_REPAIR_ROAD];
-                let updatedTasks = {};
-                roads.forEach((road) => {
-                    if (currentTasks[road.id]) {
-                        updatedTasks[road.id] = currentTasks[road.id];
-                    } else {
-                        updatedTasks[road.id] = {
-                            id: 'repair-road-' + road.id,
-                            taskType: TASK_REPAIR_ROAD,
-                            roadId: road.id,
-                            baseScore: 1,
-                            minWorkers: 3,
-                            maxWorkers: 5,
-                            assignedWorkers: {}
-                        }
-                    }
-                });
-
-                let terminatedTasks = Memory.tasks.terminated[TASK_REPAIR_ROAD];
-                for (let roadId in currentTasks) {
-                    if (!updatedTasks[roadId]) {
-                        if (!terminatedTasks[roadId]) {
-                            terminatedTasks[roadId] = currentTasks[roadId];
-                        }
-                    }
-                }
-
-                for (taskId in terminatedTasks) {
-                    let terminatedTask = terminatedTasks[taskId];
-                    if (Object.keys(terminatedTask.assignedWorkers).length == 0) {
-                        delete terminatedTasks[taskId];
-                    }
-                }
-
-                Memory.tasks.pending[TASK_REPAIR_ROAD] = updatedTasks;
-                Memory.tasks.terminated[TASK_REPAIR_ROAD] = terminatedTasks;
-
-            },
-
-            getPending: function() {
-                return Object.values(Memory.tasks.pending[TASK_REPAIR_ROAD]);
-            },
-
-            getTerminated: function() {
-                return Object.values(Memory.tasks.terminated[TASK_REPAIR_ROAD]);
-            },
-
-            getUnassignedPending: function() {
-                return this.getPending().filter((task) => {
-                    return Object.keys(task.assignedCreeps).length < 3;
-                });
-            },
-
-            getNumberPending: function() {
-                return Object.keys(Memory.tasks.pending[TASK_REPAIR_ROAD]).length;
-            },
-
-            getNumberTerminated: function() {
-                return Object.keys(Memory.tasks.terminated[TASK_REPAIR_ROAD]).length;
-            }
-        }
-    },
-
-
-
-    RepairRoadTask: function(taskId) {
 
     }
 
 }
+
+module.exports.TYPE = TASK_REPAIR_ROAD;

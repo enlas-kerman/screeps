@@ -127,7 +127,7 @@ module.exports = {
 
 
         const doStateRepairing = () => {
-            if (creep.store.getUsedCapacity() == 0) {
+            if (false || creep.store.getUsedCapacity() == 0) {
                 creep.memory.state = ST_HARVESTING;
                 return;
             }

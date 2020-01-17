@@ -1,7 +1,13 @@
-
-let { Workers } = require('task_Workers');
+let Workers = require('task_Workers');
+let Tasks = require('task_Tasks');
+let Strategy = require('strategy_Strategy');
 let { BuildTasks, BuildTask } = require('task_BuildTask');
 let { RepairRoadTasks, RepairRoadTask } = require('task_RepairRoadTask');
+
+
+Memory.supervisor = Memory.supervisor || {};
+Memory.supervisor.tasks = Memory.supervisor.tasks || {};
+Memory.supervisor.workers = Memory.supervisor.workers || {};
 
 
 
@@ -9,57 +15,9 @@ module.exports = {
 
     Supervisor: function() {
 
-        let workers = new Workers(Game.creeps);
-        let buildTasks = new BuildTasks();
-        let repairRoadTasks = new RepairRoadTasks();
-
-
-        const addUnassignedTasks = function(unassignedTasks, pendingTasks, scoreFn) {
-            pendingTasks.forEach((task) => {
-                task.score = scoreFn();
-                if (typeof(task.minWorkers) == 'undefined' || Object.keys(task.assignedWorkers).length < task.minWorkers) {
-                    unassignedTasks.push(task);
-                }
-            });
-        }
-
-
-        const unassign = function(tasks) {
-            console.log('number of terminated: ' + tasks.length);
-            tasks.forEach((task) => {
-                for (workerId in task.assignedWorkers) {
-                    let worker = workers.getWorkerById(workerId);
-                    console.log('unassigning ' + worker + ' from task ' + task.id);
-                    worker.assignedTaskId = null;
-                }
-                task.assignedWorkers = {};
-            });
-        }
-
-
-        const analyzeSituation = () => {
-
-            let room = Game.rooms['W11N45'];
-
-            buildTasks.analyze(room);
-            repairRoadTasks.analyze(room);
-
-            unassign(repairRoadTasks.getTerminated());
-
-            let pendingUnassignedTasks = [];
-
-            //let pendingBuildTasks = buildTasks.getUnassignedPending();
-
-            let pendingRepairRoadTasks = repairRoadTasks.getPending();
-            console.log('number of pending road repairs: ' + pendingRepairRoadTasks.length);
-            addUnassignedTasks(pendingUnassignedTasks, pendingRepairRoadTasks, (task) => 1000);
-
-            pendingUnassignedTasks.sort((a,b) => {
-                return a.score - b.score;
-            });
-
-            return pendingUnassignedTasks;
-        }
+        let workers = new Workers(Game.creeps, Memory.supervisor.workers);
+        let tasks = new Tasks(Game.rooms['W11N45'], Memory.supervisor.tasks);
+        let strategy = new Strategy();
 
 
         const assignWork = (pending, unassigned) => {
@@ -79,20 +37,41 @@ module.exports = {
         }
 
 
+        const cleanupTerminatedTasks = () => {
+            tasks.getTerminatedTasks().forEach((task) => {
+                console.log('cleaning up task ' + task.id);
+                let assignedWorkers = task.assignedWorkers;
+                console.log('number of assigned: ' + Object.keys(assignedWorkers).length);
+                Object.values(assignedWorkers).forEach((workerId) => {
+                    workers.unassign(workerId);
+                });
+                tasks.removeTerminated(task);
+            });
+        }
+
+
         return {
 
             update: function() {
+                console.log('**');
                 console.log('** Supervisor Running');
-                let pendingWork = analyzeSituation(Game.rooms['W11N45']);
-                pendingWork.forEach((task) => {
-                    //console.log('Work['+ task.taskType + '/' + task.id + ']: ' + task.score);
-                });
 
-                //reclaimWorkersFromTerminatedTasks();
-                let unassignedWorkers = workers.getUnassignedWorkers();
-                assignWork(pendingWork, unassignedWorkers);
-                workers.update();
+                // let work = tasks.analyze();
+                // unassign work.terminated
+                // assign work.pending if necessary
+                // update workers
+
+                tasks.analyze();
+
+                cleanupTerminatedTasks();
+
+                strategy.plan(tasks, workers);
+                strategy.assign(tasks, workers);
+
+                workers.update(tasks);
+
                 console.log('** Supervisor done');
+                console.log('**');
             }
 
         };

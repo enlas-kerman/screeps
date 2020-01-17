@@ -1,6 +1,6 @@
 
 const ROLE = 'upgrader v1';
-const UPGRADER_CONFIG = [WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
+const UPGRADER_CONFIG = [WORK, CARRY, MOVE];
 
 const ST_INIT = 0;
 const ST_HARVESTING = 1;
@@ -25,6 +25,36 @@ function findNearestRuin(ruins, creep) {
     });
     return minCostRuin;
 }
+
+
+
+
+const findBestSource = (room, creep) => {
+
+    let costs = new PathFinder.CostMatrix;
+    room.find(FIND_CREEPS).forEach((creep) => {
+        costs.set(creep.pos.x, creep.pos.y, 0xff);
+    });
+
+    let minCost = 1000000;
+    let minCostSource = null;
+    room.find(FIND_SOURCES).forEach((source) => {
+        let ret = PathFinder.search(creep.pos, [{ pos: source.pos, range: 1}], {
+            plainCost: 2,
+            swampCost: 10,
+            roomCallback: () => {
+                return costs;
+            }
+        });
+        if (!ret.incomplete && ret.cost <= minCost) {
+            minCost = ret.cost;
+            minCostSource = source;
+        }
+    });
+
+    return minCostSource;
+};
+
 
 
 module.exports = {
@@ -83,19 +113,35 @@ module.exports = {
         }
 
 
-        const doStateHarvesting = (ruins) => {
-            if (creep.store.getFreeCapacity() == 0) {
-                beginDelivery();
-            } else {
-                let nearestRuin = findNearestRuin(ruins, creep);
-                if (creep.withdraw(nearestRuin, RESOURCE_ENERGY, creep.store.getFreeCapacity()) != ERR_NOT_IN_RANGE) {
-                    let amount = Math.min(creep.store.getFreeCapacity(), nearestRuin.store.getUsedCapacity());
-                    creep.withdraw(nearestRuin, RESOURCE_ENERGY, amount);
+        const doStateHarvesting = () => {
+            if (creep.store.getFreeCapacity() > 0) {
+                let source = findBestSource(creep.room, creep);
+                if (source) {
+                    if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(source);
+                    }
                 } else {
-                    creep.moveTo(nearestRuin);
+                    console.log('Builder unable to move because no source found.');
                 }
+            } else {
+                beginDelivery(creep.room);
             }
         }
+
+
+        // const doStateHarvesting = (ruins) => {
+        //     if (creep.store.getFreeCapacity() == 0) {
+        //         beginDelivery();
+        //     } else {
+        //         let nearestRuin = findNearestRuin(ruins, creep);
+        //         if (creep.withdraw(nearestRuin, RESOURCE_ENERGY, creep.store.getFreeCapacity()) != ERR_NOT_IN_RANGE) {
+        //             let amount = Math.min(creep.store.getFreeCapacity(), nearestRuin.store.getUsedCapacity());
+        //             creep.withdraw(nearestRuin, RESOURCE_ENERGY, amount);
+        //         } else {
+        //             creep.moveTo(nearestRuin);
+        //         }
+        //     }
+        // }
 
 
         const deliver = (dest) => {
