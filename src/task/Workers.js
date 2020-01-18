@@ -1,6 +1,6 @@
 let Worker = require('task_Worker');
 
-const MAX_WORKERS = 2;
+const MAX_WORKERS = 6;
 
 
 if (typeof Memory.nextWorkerId === 'undefined') {
@@ -57,6 +57,7 @@ module.exports = function(creeps, workers) {
 
 
         unassign: function(workerId) {
+            console.log('unassigning ' + workerId);
             if (workers[workerId]) {
                 let worker = new Worker();
                 worker.setState(workers[workerId]);
@@ -94,7 +95,12 @@ module.exports = function(creeps, workers) {
                 if (assignedTaskId != null) {
                     //console.log('updating the worker ' + workerId + ' for task ' + assignedTaskId);
                     let task = tasks.getTaskFor(assignedTaskId);
-                    task.update(worker);
+                    if (task) {
+                        task.update(worker);
+                    } else {
+                        console.log("No task found for " + assignedTaskId);
+                        this.unassign(workerId);
+                    }
                 }
             });
 

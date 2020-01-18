@@ -1,5 +1,6 @@
-let RepairRoadGoal = require('task_RepairRoadGoal');
 let RepairRoadTask = require('task_RepairRoadTask');
+let UpgradeControllerTask = require('task_UpgradeControllerTask');
+
 
 /**
  * 
@@ -21,12 +22,24 @@ const TaskTable = function(memory) {
 
 
         addTask: function(taskInfo) {
-            console.log('adding task with id ' + taskInfo.id);
+            console.log('adding task with id ' + taskInfo.id + ' and type ' + taskInfo.type);
+            if (typeof(taskInfo.score) == 'undefined') {
+                taskInfo.score = 0;
+            }
+            if (typeof(taskInfo.minWorkers) == 'undefined') {
+                taskInfo.minWorkers = 1;
+            }
+            if (typeof(taskInfo.maxWorkers) == 'undefined') {
+                taskInfo.maxWorkers = 1;
+            }
+            taskInfo.assignedWorkers = taskInfo.assignedWorkers || {};
             let id = taskInfo.id;
             if (!memory.index[id]) {
                 memory.index[id] = taskInfo;
+                memory.types[taskInfo.type] = memory.types[taskInfo.type] || {};
                 memory.types[taskInfo.type][id] = true;
             }
+            return taskInfo;
         },        
 
 
@@ -61,11 +74,12 @@ const TaskTable = function(memory) {
 
 
         getByType: function(type) {
-            var pending = [];
-            for (id in memory.types[type]) {
-                pending.push(memory.index[id]);
+            let typeTasks = Object.keys(memory.types[type]);
+            let tasks = new Array(typeTasks.length);
+            for (let i=0; i < typeTasks.length; i++) {
+                tasks[i] = memory.index[typeTasks[i]];
             }
-            return pending;
+            return tasks;
         },
 
 
@@ -81,6 +95,15 @@ const TaskTable = function(memory) {
                 count += Object.keys(task.assignedWorkers).length;
             }
             return count;
+        },
+
+
+        getTasksByPriority: function() {
+            var tasks = Object.values(memory.index);
+            tasks.sort((a,b) => {
+                return b.score - a.score;
+            });
+            return tasks;
         }
 
     }
@@ -90,11 +113,12 @@ const TaskTable = function(memory) {
 
 module.exports = function(room, memory) {
 
-    const goals = {};
-    goals[RepairRoadGoal.TYPE] = new RepairRoadGoal();
+    memory.types = memory.types || {};
+    memory.index = memory.index || {};
 
     const taskFws = {}; // flyweight objects
     taskFws[RepairRoadTask.TYPE] = new RepairRoadTask();
+    taskFws[UpgradeControllerTask.TYPE] = new UpgradeControllerTask();
 
     const tasks = new TaskTable(memory);
 
@@ -102,13 +126,15 @@ module.exports = function(room, memory) {
 
         analyze: function() {
 
-            memory.types = memory.types || {};
-            memory.index = memory.index || {};
-            for (type in goals) {
-                let goal = goals[type];
-                memory.types[type] = memory.types[type] || {};
-                goal.analyze(room, tasks);
-            }
+            // for (type in goals) {
+            //     let goal = goals[type];
+            //     memory.types[type] = memory.types[type] || {};
+            //     goal.analyze(room, tasks);
+            // }
+        },
+
+        getTaskTable: function() {
+            return tasks;
         },
 
 
@@ -150,6 +176,11 @@ module.exports = function(room, memory) {
             } else {
                 console.log('Warning: task does not exist ' + taskId);
             }
+        },
+
+
+        getTasksByPriority: function() {
+            return tasks.getTasksByPriority();
         }
 
     }

@@ -1,6 +1,7 @@
+
 const ST_INIT = 0;
 const ST_COLLECT_ENERGY = 1;
-const ST_REPAIR = 2;
+const ST_UPGRADE = 2;
 
 
 const Task = function() {
@@ -19,8 +20,8 @@ const Task = function() {
         let minCostSource = null;
         room.find(FIND_SOURCES).forEach((source) => {
             let ret = PathFinder.search(creep.pos, [{ pos: source.pos, range: 1}], {
-                plainCost: 2,
-                swampCost: 10,
+                plainCost: 1,
+                swampCost: 5,
                 roomCallback: () => {
                     return costs;
                 }
@@ -33,13 +34,12 @@ const Task = function() {
     
         return minCostSource;
     };
-    
 
 
     const doInitState = (worker) => {
         let creep = worker.getCreep();
         if (creep.store.getUsedCapacity() > 10) {
-            worker.getTaskData().state = ST_REPAIR;
+            worker.getTaskData().state = ST_UPGRADE;
         } else {
             worker.getTaskData().state = ST_COLLECT_ENERGY;
         }
@@ -57,25 +57,22 @@ const Task = function() {
                 }
             }
         } else {
-            data.state = ST_REPAIR;
+            data.state = ST_UPGRADE;
         }
     }
 
 
-    const doRepairState = (worker) => {
+    const doUpgradeState = (worker) => {
         let creep = worker.getCreep();
         if (creep.store.getUsedCapacity() == 0) {
             worker.getTaskData().state = ST_COLLECT_ENERGY;
             return;
         }
 
-        let roadId = _m.memory.roadId;
-        let road = Game.getObjectById(roadId);
-        if (road) {
-            if (road.hits < road.hitsMax) {
-                if (creep.repair(road) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(road);
-                }
+        let controller = Game.rooms[_m.memory.roomId].controller;
+        if (controller) {
+            if (creep.upgradeController(controller) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(controller);
             }
         }
     }
@@ -93,8 +90,9 @@ const Task = function() {
                 console.log("Warning: clearing data for task " + _m.memory.id);
                 worker.clearTaskData();
             }
+
             data.state = data.state || 0;
-            console.log('[RoadRepair' + worker.getAssignedTaskId() + '] updating ' + worker.getId() + ',' + data.state);
+            //console.log('UpgradeControllerTask: ' + worker.getId() + ',' + data.state);
             switch(data.state) {
                 case ST_INIT:
                     doInitState(worker);
@@ -102,8 +100,8 @@ const Task = function() {
                 case ST_COLLECT_ENERGY:
                     doCollectEnergyState(worker);
                     break;
-                case ST_REPAIR:
-                    doRepairState(worker);
+                case ST_UPGRADE:
+                    doUpgradeState(worker);
                     break;
                 default:
                     console.log('Warning: unknown state ' + data.state);
@@ -115,6 +113,5 @@ const Task = function() {
     }
 }
 
-
-Task.TYPE = 'repair road';
+Task.TYPE = 'upgrade';
 module.exports = Task;
