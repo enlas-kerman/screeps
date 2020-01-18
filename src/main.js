@@ -1,6 +1,6 @@
 let { Creeps } = require('controller_Creeps');
 let { Towers } = require('controller_Towers');
-let { Supervisor } = require('task_Supervisor');
+let Supervisor = require('supervisor_Supervisor');
 
 
 module.exports.loop = () => {

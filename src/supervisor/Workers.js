@@ -1,4 +1,4 @@
-let Worker = require('task_Worker');
+let Worker = require('supervisor_Worker');
 
 const MAX_WORKERS = 6;
 
@@ -69,7 +69,7 @@ module.exports = function(creeps, workers) {
         spawn: function(genetics) {
             let spawn = Game.spawns['MARA'];
             let workerId = '|' + Memory.nextWorkerId + '|';
-            let err = spawn.spawnCreep([WORK, CARRY, MOVE], workerId, {
+            let err = spawn.spawnCreep([WORK, WORK, CARRY, MOVE], workerId, {
                 memory: {
                     role: 'worker'
                 }
