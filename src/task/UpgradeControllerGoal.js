@@ -7,8 +7,6 @@ module.exports = function() {
     return {
 
         analyze: function(room, tasks) {
-            console.log('analyzing control point upgrade requirements');
-
             let pending = tasks.getByType(UpgradeControllerTask.TYPE);
             let task = pending.length > 0 ? pending[0] : tasks.addTask({
                 id: 'upgrade-controller-' + room.name,

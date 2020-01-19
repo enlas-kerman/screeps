@@ -1,6 +1,7 @@
 let RepairRoadTask = require('task_RepairRoadTask');
 let UpgradeControllerTask = require('task_UpgradeControllerTask');
 let DeliverEnergyTask = require('task_DeliverEnergyTask');
+let BuildTask = require('task_BuildTask');
 
 /**
  * 
@@ -73,11 +74,14 @@ const TaskTable = function(memory) {
         },
 
 
-        getByType: function(type) {
+        getByType: function(type, opts) {
             let typeTasks = Object.keys(memory.types[type]);
             let tasks = new Array(typeTasks.length);
             for (let i=0; i < typeTasks.length; i++) {
                 tasks[i] = memory.index[typeTasks[i]];
+            }
+            if (opts && opts.filter) {
+                tasks = _.filter(tasks, opts.filter);
             }
             return tasks;
         },
@@ -120,10 +124,12 @@ module.exports = function(room, memory) {
     taskFws[RepairRoadTask.TYPE] = new RepairRoadTask();
     taskFws[UpgradeControllerTask.TYPE] = new UpgradeControllerTask();
     taskFws[DeliverEnergyTask.TYPE] = new DeliverEnergyTask();
+    taskFws[BuildTask.TYPE] = new BuildTask();
 
     memory.types[RepairRoadTask.TYPE] = memory.types[RepairRoadTask.TYPE] || {};
     memory.types[UpgradeControllerTask.TYPE] = memory.types[UpgradeControllerTask.TYPE] || {};
     memory.types[DeliverEnergyTask.TYPE] = memory.types[DeliverEnergyTask.TYPE] || {};
+    memory.types[BuildTask.TYPE] = memory.types[BuildTask.TYPE] || {};
 
     const tasks = new TaskTable(memory);
 

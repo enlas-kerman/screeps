@@ -49,7 +49,7 @@ module.exports = function() {
                         id: key,
                         type: RepairRoadTask.TYPE,
                         roadId: road.id,
-                        score: 2,
+                        score: 10,
                         minWorkers: 1,
                         maxWorkers: 3,
                         assignedWorkers: {}
