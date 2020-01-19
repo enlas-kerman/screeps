@@ -6,11 +6,12 @@ let BuildGoal = require('task_BuildGoal');
 
 module.exports = function(room) {
 
+    // simple housekeeping goals for a controlled room
     const goals = {};
-    goals['repair road goal'] = new RepairRoadGoal();
-    goals['upgrade controller goal'] = new UpgradeControllerGoal();
-    goals['spawn energy goal'] = new SpawnEnergyGoal();
-    goals['build goal'] = new BuildGoal();
+    goals['repair road goal'] = new RepairRoadGoal('RepairRoadGoal-' + room.name);
+    goals['upgrade controller goal'] = new UpgradeControllerGoal('UpgradeControllerGoal-' + room.name);
+    goals['spawn energy goal'] = new SpawnEnergyGoal('SpawnEnergyGoal-' + room.name);
+    goals['build goal'] = new BuildGoal('BuildGoal-' + room.name);
 
 
 
@@ -94,6 +95,19 @@ module.exports = function(room) {
 
                 }
             }
+        },
+
+
+        describeGoals: function() {
+            let goalDescs = [];
+            for (let name in goals) {
+                let goal = goals[name];
+                goalDescs.push({
+                    name: name,
+                    description: goal.describe ? goal.describe() : 'No description.'
+                })
+            }
+            return goalDescs;
         }
 
     }

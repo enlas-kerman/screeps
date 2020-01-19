@@ -47,7 +47,9 @@ const TaskTable = function(memory) {
         // tasks cannot be removed if their are assigned workers
         removeTask: function(taskId) {
             if (memory.index[taskId]) {
+                let type = memory.index[taskId].type;
                 delete memory.index[taskId];
+                delete memory.types[type][taskId];
             }
             if (memory.terminated[taskId]) {
                 if (Object.keys(memory.terminated[taskId].assignedWorkers).length > 0) {

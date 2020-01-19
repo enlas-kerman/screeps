@@ -9,20 +9,19 @@ let RepairRoadTask = require('task_RepairRoadTask');
 
 const ROADS_TICS_REPAIR_THRESHOLD = 0.75;
 
-
-
-module.exports = function() {
     
 
-    const findRoadsNeedingRepair = (room) => {
-        return room.find(FIND_STRUCTURES, {
-            filter: (s) => {
-                // repair once a roads hits drop below 85% max
-                return (s.structureType == STRUCTURE_ROAD) && ((s.hits / s.hitsMax) < ROADS_TICS_REPAIR_THRESHOLD);
-            }
-        });
-    }
+const findRoadsNeedingRepair = (room) => {
+    return room.find(FIND_STRUCTURES, {
+        filter: (s) => {
+            // repair once a roads hits drop below 85% max
+            return (s.structureType == STRUCTURE_ROAD) && ((s.hits / s.hitsMax) < ROADS_TICS_REPAIR_THRESHOLD);
+        }
+    });
+}
 
+
+module.exports = function(goalId) {
 
     return {
      
@@ -48,6 +47,7 @@ module.exports = function() {
                     taskTable.addTask({
                         id: key,
                         type: RepairRoadTask.TYPE,
+                        goal: goalId,
                         roadId: road.id,
                         score: 10,
                         minWorkers: 1,

@@ -1,7 +1,7 @@
 let UpgradeControllerTask = require('task_UpgradeControllerTask');
 
 
-module.exports = function() {
+module.exports = function(goalId) {
     
 
     return {
@@ -11,6 +11,7 @@ module.exports = function() {
             let task = pending.length > 0 ? pending[0] : tasks.addTask({
                 id: 'upgrade-controller-' + room.name,
                 type: UpgradeControllerTask.TYPE,
+                goal: goalId,
                 roomId: room.name,
                 score: 1,
                 minWorkers: 100,

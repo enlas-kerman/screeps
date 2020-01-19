@@ -18,11 +18,15 @@ const findSpawnsAndExtsNeedingEnergy = (room) => {
 
 module.exports = class {
 
+    constructor(goalId) {
+        this.goalId = goalId;
+    }
+
     analyze(room, tasks) {
 
         let pendingTasks = tasks.getByType(DeliverEnergyTask.TYPE, {
             filter: {
-                goal: 'SpawnEnergyGoal'
+                goal: this.goalId
             }
         });
         for (let i=0; i < pendingTasks.length; i++) {
@@ -41,9 +45,9 @@ module.exports = class {
                 tasks.addTask({
                     id: key,
                     type: DeliverEnergyTask.TYPE,
-                    goal: 'SpawnEnergyGoal',
+                    goal: this.goalId,
                     targetId: target.id,
-                    score: 10,
+                    score: 15,
                     minWorkers: target.structureType === STRUCTURE_SPAWN ? 4 : 1,
                     maxWorkers: target.structureType === STRUCTURE_SPAWN ? 6 : 1,
                     assignedWorkers: {}

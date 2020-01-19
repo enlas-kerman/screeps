@@ -36,10 +36,10 @@ const cleanupDeadWorkers = (tasks, workers) => {
 
 module.exports = class {
 
-    constructor() {
+    constructor(roomName) {
         this.workers = new Workers(Game.creeps, Memory.supervisor.workers);
-        this.tasks = new Tasks(Game.rooms['W11N45'], Memory.supervisor.tasks);
-        this.strategy = new Strategy(Game.rooms['W11N45']);
+        this.tasks = new Tasks(Game.rooms[roomName], Memory.supervisor.tasks);
+        this.strategy = new Strategy(Game.rooms[roomName]);
     }
 
     update() {
@@ -60,5 +60,21 @@ module.exports = class {
         this.workers.update(this.tasks);
 
         console.log('** Supervisor done');
+    }
+
+
+    purge() {
+        console.log('purging tasks');
+        let pending = this.tasks.getTasksByPriority();
+        pending.forEach((task)=> {
+            console.log('removing task: ' + task.id);
+            let assignedWorkers = task.assignedWorkers;
+            Object.values(assignedWorkers).forEach((workerId) => {
+                console.log('  unassigning ' + workerId);
+                this.workers.unassign(workerId);
+            });
+            task.assignedWorkers = {};
+            this.tasks.removeTask(task);
+        })
     }
 }

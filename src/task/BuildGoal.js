@@ -10,10 +10,14 @@ const findConstructionSites = (room) => {
 
 module.exports = class {
 
+    constructor(goalId) {
+        this.goalId = goalId;
+    }
+
     analyze(room, tasks) {
         let pendingTasks = tasks.getByType(BuildTask.TYPE, {
             filter: {
-                goal: 'BuildGoal'
+                goal: this.goalId
             }
         });
         for (let i=0; i < pendingTasks.length; i++) {
@@ -32,9 +36,9 @@ module.exports = class {
                 tasks.addTask({
                     id: key,
                     type: BuildTask.TYPE,
-                    goal: 'BuildGoal',
+                    goal: this.goalId,
                     siteId: site.id,
-                    score: 15,
+                    score: 10,
                     minWorkers: 3,
                     maxWorkers: 6,
                     assignedWorkers: {}
