@@ -1,13 +1,14 @@
 
 let RepairRoadGoal = require('task_RepairRoadGoal');
 let UpgradeControllerGoal = require('task_UpgradeControllerGoal');
-
+let SpawnEnergyGoal = require('task_SpawnEnergyGoal');
 
 module.exports = function(room) {
 
     const goals = {};
     goals['repair road goal'] = new RepairRoadGoal();
     goals['upgrade controller goal'] = new UpgradeControllerGoal();
+    goals['spawn energy goal'] = new SpawnEnergyGoal();
 
 
 

@@ -10,7 +10,6 @@ module.exports = function() {
             console.log('analyzing control point upgrade requirements');
 
             let pending = tasks.getByType(UpgradeControllerTask.TYPE);
-            console.log('pending upgrade tasks (should always be 1): ' + pending.length);
             let task = pending.length > 0 ? pending[0] : tasks.addTask({
                 id: 'upgrade-controller-' + room.name,
                 type: UpgradeControllerTask.TYPE,

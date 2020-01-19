@@ -1,6 +1,6 @@
 let RepairRoadTask = require('task_RepairRoadTask');
 let UpgradeControllerTask = require('task_UpgradeControllerTask');
-
+let DeliverEnergyTask = require('task_DeliverEnergyTask');
 
 /**
  * 
@@ -119,6 +119,11 @@ module.exports = function(room, memory) {
     const taskFws = {}; // flyweight objects
     taskFws[RepairRoadTask.TYPE] = new RepairRoadTask();
     taskFws[UpgradeControllerTask.TYPE] = new UpgradeControllerTask();
+    taskFws[DeliverEnergyTask.TYPE] = new DeliverEnergyTask();
+
+    memory.types[RepairRoadTask.TYPE] = memory.types[RepairRoadTask.TYPE] || {};
+    memory.types[UpgradeControllerTask.TYPE] = memory.types[UpgradeControllerTask.TYPE] || {};
+    memory.types[DeliverEnergyTask.TYPE] = memory.types[DeliverEnergyTask.TYPE] || {};
 
     const tasks = new TaskTable(memory);
 

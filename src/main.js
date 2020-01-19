@@ -5,8 +5,8 @@ let Supervisor = require('supervisor_Supervisor');
 
 module.exports.loop = () => {
    
-    let creeps = new Creeps(Game, Memory);
-    creeps.update();
+    // let creeps = new Creeps(Game, Memory);
+    // creeps.update();
     
     let towers = new Towers(Game, Memory);
     towers.update();
