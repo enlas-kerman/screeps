@@ -1,8 +1,3 @@
-/**
- * creates tasks when the spawn or extensions in the room are not full
- * when the targets are filled with energy, their corresponding tasks are removed
- */
-
 let DeliverEnergyTask = require('task_DeliverEnergyTask');
 
 
@@ -16,7 +11,7 @@ const findSpawnsAndExtsNeedingEnergy = (room) => {
 
 
 
-module.exports = class {
+const Goal = class {
 
     constructor(goalId) {
         this.goalId = goalId;
@@ -55,7 +50,8 @@ module.exports = class {
             }
         }
 
-
     }
 
 }
+
+module.exports = Goal;

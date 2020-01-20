@@ -69,7 +69,7 @@ module.exports = function(creeps, workers) {
         spawn: function(genetics) {
             let spawn = Game.spawns['MARA'];
             let workerId = '|' + Memory.nextWorkerId + '|';
-            let err = spawn.spawnCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE], workerId, {
+            let err = spawn.spawnCreep([WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE], workerId, {
                 memory: {
                     role: 'worker'
                 }

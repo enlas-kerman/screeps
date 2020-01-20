@@ -8,7 +8,7 @@ const findConstructionSites = (room) => {
 
 
 
-module.exports = class {
+const Goal = class {
 
     constructor(goalId) {
         this.goalId = goalId;
@@ -47,6 +47,6 @@ module.exports = class {
         }
     }
 
-
-
 }
+
+module.exports = Goal;

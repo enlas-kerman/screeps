@@ -31,11 +31,14 @@ const findBestEnergySource = (room, creep) => {
 
 
 
-const Task = function() {
+const Task = class {
 
-    const _m = {};
+    constructor() {
+        this._m = {};
+    }
+
     
-    const doInitState = (worker) => {
+    _doInitState(worker) {
         let creep = worker.getCreep();
         if (creep.store.getUsedCapacity() > 30) {
             worker.getTaskData().state = ST_DELIVER;
@@ -45,7 +48,7 @@ const Task = function() {
     }
 
 
-    const doCollectEnergyState = (worker) => {
+    _doCollectEnergyState(worker) {
         let creep = worker.getCreep();
         let data = worker.getTaskData();
         if (creep.store.getFreeCapacity() > 0) {
@@ -61,14 +64,14 @@ const Task = function() {
     }
 
 
-    const doDeliverState = (worker) =>  {
+    _doDeliverState(worker) {
         let creep = worker.getCreep();
         if (creep.store.getUsedCapacity() == 0) {
             worker.getTaskData().state = ST_COLLECT_ENERGY;
             return;
         }
 
-        let targetId = _m.memory.targetId;
+        let targetId = this._m.memory.targetId;
         let target = Game.getObjectById(targetId);
         if (target) {
             if (target.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
@@ -80,30 +83,29 @@ const Task = function() {
     }
 
 
-    return {
-        setState: function(state) {
-            _m.memory = state;
-        },
+    setState(state) {
+        this._m.memory = state;
+    }
 
-        update: function(worker) {
-            let data = worker.getTaskData();
-            data.state = data.state || 0;
-            console.log('[DeliverEnergyTask ' + _m.memory.id + '] ' + worker.getId() + ' state ' + worker.getTaskData().state);
-            switch(data.state) {
-                case ST_INIT:
-                    doInitState(worker);
-                    break;
-                case ST_COLLECT_ENERGY:
-                    doCollectEnergyState(worker);
-                    break;
-                case ST_DELIVER:
-                    doDeliverState(worker);
-                    break;
-                default:
-                    console.log('Warning: unknown state ' + data.state);
-                    data.state = ST_INIT;
-                    break;
-            }
+
+    update(worker) {
+        let data = worker.getTaskData();
+        data.state = data.state || 0;
+        console.log('[DeliverEnergyTask ' + this._m.memory.id + '] ' + worker.getId() + ' state ' + worker.getTaskData().state);
+        switch(data.state) {
+            case ST_INIT:
+                this._doInitState(worker);
+                break;
+            case ST_COLLECT_ENERGY:
+                this._doCollectEnergyState(worker);
+                break;
+            case ST_DELIVER:
+                this._doDeliverState(worker);
+                break;
+            default:
+                console.log('Warning: unknown state ' + data.state);
+                data.state = ST_INIT;
+                break;
         }
     }
 }
