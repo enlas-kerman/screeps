@@ -1,8 +1,8 @@
 let { Upgrader, spawnUpgrader, ROLE_UPGRADER } = require('roles_upgrader');
 let { Builder, spawnBuilder, ROLE_BUILDER } = require('roles_builder');
 
-let MAX_UPGRADERS = 8;
-let MAX_BUILDERS = 5;
+let MAX_UPGRADERS = 0;
+let MAX_BUILDERS = 0;
 
 
 module.exports = {
@@ -32,7 +32,6 @@ module.exports = {
                         creeps.builders.push(new Builder(creep));
                         break;
                     case ROLE_UPGRADER:
-                    default:
                         creeps.upgraders.push(new Upgrader(creep));
                 }        
             }
