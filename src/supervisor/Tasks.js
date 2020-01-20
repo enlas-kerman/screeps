@@ -117,85 +117,82 @@ const TaskTable = function(memory) {
 }
 
 
-module.exports = function(room, memory) {
+/**
+ * Task flyweights.  Defined module-scope to avoid rebuilding them every tic
+ */
+const taskFws = {};
+taskFws[RepairRoadTask.TYPE] = new RepairRoadTask();
+taskFws[UpgradeControllerTask.TYPE] = new UpgradeControllerTask();
+taskFws[DeliverEnergyTask.TYPE] = new DeliverEnergyTask();
+taskFws[BuildTask.TYPE] = new BuildTask();
 
-    memory.types = memory.types || {};
-    memory.index = memory.index || {};
+const Tasks = class {
 
-    const taskFws = {}; // flyweight objects
-    taskFws[RepairRoadTask.TYPE] = new RepairRoadTask();
-    taskFws[UpgradeControllerTask.TYPE] = new UpgradeControllerTask();
-    taskFws[DeliverEnergyTask.TYPE] = new DeliverEnergyTask();
-    taskFws[BuildTask.TYPE] = new BuildTask();
+    constructor(room, memory) {
+        this.room = room;
+        this.memory = memory;
 
-    memory.types[RepairRoadTask.TYPE] = memory.types[RepairRoadTask.TYPE] || {};
-    memory.types[UpgradeControllerTask.TYPE] = memory.types[UpgradeControllerTask.TYPE] || {};
-    memory.types[DeliverEnergyTask.TYPE] = memory.types[DeliverEnergyTask.TYPE] || {};
-    memory.types[BuildTask.TYPE] = memory.types[BuildTask.TYPE] || {};
+        memory.index = memory.index || {};
+        memory.types = memory.types || {};
+        memory.types[RepairRoadTask.TYPE] = memory.types[RepairRoadTask.TYPE] || {};
+        memory.types[UpgradeControllerTask.TYPE] = memory.types[UpgradeControllerTask.TYPE] || {};
+        memory.types[DeliverEnergyTask.TYPE] = memory.types[DeliverEnergyTask.TYPE] || {};
+        memory.types[BuildTask.TYPE] = memory.types[BuildTask.TYPE] || {};    
 
-    const tasks = new TaskTable(memory);
+        this.tasks = new TaskTable(memory);
+    }
 
-    return {
-
-        analyze: function() {
-
-            // for (type in goals) {
-            //     let goal = goals[type];
-            //     memory.types[type] = memory.types[type] || {};
-            //     goal.analyze(room, tasks);
-            // }
-        },
-
-        getTaskTable: function() {
-            return tasks;
-        },
+    
+    getTaskTable() {
+        return this.tasks;
+    }
 
 
-        getTaskById: function(id) {
-            return tasks.getById(id);
-        },
+    getTaskById(id) {
+        return this.tasks.getById(id);
+    }
 
 
-        getPendingTasks: function(type) {
-            return tasks.getByType(type);
-        },
+    getPendingTasks(type) {
+        return this.tasks.getByType(type);
+    }
 
 
-        getTotalNumberAssigned: function(type) {
-            return tasks.getTotalNumberAssigned(type);
-        },
+    getTotalNumberAssigned(type) {
+        return this.tasks.getTotalNumberAssigned(type);
+    }
 
 
-        getTerminatedTasks: function() {
-            return tasks.getTerminatedTasks();
-        },
+    getTerminatedTasks() {
+        return this.tasks.getTerminatedTasks();
+    }
 
 
-        removeTask: function(task) {
-            tasks.removeTask(task.id);
-        },
+    removeTask(task) {
+        this.tasks.removeTask(task.id);
+    }
 
 
-        getTaskFor: function(taskId) {
-            let task = tasks.getById(taskId);
-            if (task) {
-                if (taskFws[task.type]) {
-                    let taskFw = taskFws[task.type];
-                    taskFw.setState(task);
-                    return taskFw;
-                } else {
-                    console.log('Warning: task flyweight does not exist for type ' + task.type);
-                }
+    getTaskFor(taskId) {
+        let task = this.tasks.getById(taskId);
+        if (task) {
+            if (taskFws[task.type]) {
+                let taskFw = taskFws[task.type];
+                taskFw.setState(task);
+                return taskFw;
             } else {
-                console.log('Warning: task does not exist ' + taskId);
+                console.log('Warning: task flyweight does not exist for type ' + task.type);
             }
-        },
-
-
-        getTasksByPriority: function() {
-            return tasks.getTasksByPriority();
+        } else {
+            console.log('Warning: task does not exist ' + taskId);
         }
+    }
 
+
+    getTasksByPriority() {
+        return this.tasks.getTasksByPriority();
     }
 
 }
+
+module.exports = Tasks;
