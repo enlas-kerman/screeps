@@ -7,13 +7,6 @@ const ST_UPGRADE = 2;
 
 const findBestEnergySource = (room, creep) => {
 
-    let ruin = Game.getObjectById('5e1af219be0a85a94bebbf01');
-    if (ruin) {
-        if (ruin.store.getUsedCapacity() > 0) {
-            return ruin;
-        }
-    }
-
     let costs = new PathFinder.CostMatrix;
     room.find(FIND_CREEPS).forEach((creep) => {
         costs.set(creep.pos.x, creep.pos.y, 0xff);
