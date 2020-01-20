@@ -5,7 +5,22 @@ const ST_UPGRADE = 2;
 
 
 
-const findBestEnergySource = (room, creep) => {
+const findBestEnergySource = (room, worker) => {
+
+    let creep = worker.getCreep();
+
+    if (worker.getTaskData().useContainer) {
+        let containers = room.find(FIND_STRUCTURES, {
+            filter: (s) => {
+                return (s.structureType == STRUCTURE_CONTAINER) && (s.store.getUsedCapacity(RESOURCE_ENERGY) >= creep.store.getFreeCapacity());
+            }
+        });
+
+        if (containers.length > 0) {
+            return containers[0];
+        }
+    }
+
 
     let costs = new PathFinder.CostMatrix;
     room.find(FIND_CREEPS).forEach((creep) => {
@@ -46,6 +61,7 @@ const Task = class {
             worker.getTaskData().state = ST_UPGRADE;
         } else {
             worker.getTaskData().state = ST_COLLECT_ENERGY;
+            worker.getTaskData().useContainer = true;
         }
     }
 
@@ -54,15 +70,17 @@ const Task = class {
         let creep = worker.getCreep();
         let data = worker.getTaskData();
         if (creep.store.getFreeCapacity() > 0) {
-            let source = findBestEnergySource(creep.room, creep);
+            let source = findBestEnergySource(creep.room, worker);
             if (source) {
-                if (source.structure) {
+                if (source.structureType) {
                     if (creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(source);
                     }
                 } else {
                     if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(source);
+                    } else {
+                        data.useContainer = false;
                     }
                 }
             }
@@ -76,6 +94,7 @@ const Task = class {
         let creep = worker.getCreep();
         if (creep.store.getUsedCapacity() == 0) {
             worker.getTaskData().state = ST_COLLECT_ENERGY;
+            worker.getTaskData().useContainer = true;
             return;
         }
 

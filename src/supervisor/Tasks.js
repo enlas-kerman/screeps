@@ -1,7 +1,8 @@
-let RepairRoadTask = require('task_RepairRoadTask');
+let RepairTask = require('task_RepairTask');
 let UpgradeControllerTask = require('task_UpgradeControllerTask');
 let DeliverEnergyTask = require('task_DeliverEnergyTask');
 let BuildTask = require('task_BuildTask');
+let HarvestingTask = require('task_HarvestingTask');
 
 /**
  * 
@@ -121,10 +122,11 @@ const TaskTable = function(memory) {
  * Task flyweights.  Defined module-scope to avoid rebuilding them every tic
  */
 const taskFws = {};
-taskFws[RepairRoadTask.TYPE] = new RepairRoadTask();
+taskFws[RepairTask.TYPE] = new RepairTask();
 taskFws[UpgradeControllerTask.TYPE] = new UpgradeControllerTask();
 taskFws[DeliverEnergyTask.TYPE] = new DeliverEnergyTask();
 taskFws[BuildTask.TYPE] = new BuildTask();
+taskFws[HarvestingTask.TYPE] = new HarvestingTask();
 
 const Tasks = class {
 
@@ -134,10 +136,11 @@ const Tasks = class {
 
         memory.index = memory.index || {};
         memory.types = memory.types || {};
-        memory.types[RepairRoadTask.TYPE] = memory.types[RepairRoadTask.TYPE] || {};
+        memory.types[RepairTask.TYPE] = memory.types[RepairTask.TYPE] || {};
         memory.types[UpgradeControllerTask.TYPE] = memory.types[UpgradeControllerTask.TYPE] || {};
         memory.types[DeliverEnergyTask.TYPE] = memory.types[DeliverEnergyTask.TYPE] || {};
         memory.types[BuildTask.TYPE] = memory.types[BuildTask.TYPE] || {};    
+        memory.types[HarvestingTask.TYPE] = memory.types[HarvestingTask.TYPE] || {};    
 
         this.tasks = new TaskTable(memory);
     }

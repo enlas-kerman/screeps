@@ -1,8 +1,10 @@
 
-let RepairRoadGoal = require('task_RepairRoadGoal');
+let RepairGoal = require('task_RepairGoal');
 let UpgradeControllerGoal = require('task_UpgradeControllerGoal');
 let SpawnEnergyGoal = require('task_SpawnEnergyGoal');
 let BuildGoal = require('task_BuildGoal');
+let HarvestingGoal = require('task_HarvestingGoal');
+
 
 module.exports = class {
 
@@ -10,10 +12,11 @@ module.exports = class {
         this.room = room;
 
         this.goals = {};
-        this.goals['repair road goal'] = new RepairRoadGoal('RepairRoadGoal-' + room.name);
+        this.goals['repair goal'] = new RepairGoal('RepairGoal-' + room.name);
         this.goals['upgrade controller goal'] = new UpgradeControllerGoal('UpgradeControllerGoal-' + room.name);
         this.goals['spawn energy goal'] = new SpawnEnergyGoal('SpawnEnergyGoal-' + room.name);
         this.goals['build goal'] = new BuildGoal('BuildGoal-' + room.name);
+        this.goals['harvesting'] = new HarvestingGoal('HarvestingGoal-' + room.name);
     }
 
 
@@ -30,10 +33,6 @@ module.exports = class {
 
 
     assign(tasks, workers) {
-        // initially implement a simple strategy
-        // repair the roads (up to 2 workers)
-        // fill the spawn (up to 3 workers)
-        // upgrade the controller (as many as available)
 
         let pending = this.plan(tasks, workers);
         console.log('Number of tasks pending: ' + pending.length);

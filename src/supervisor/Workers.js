@@ -1,6 +1,6 @@
 let Worker = require('supervisor_Worker');
 
-const MAX_WORKERS = 8;
+const MAX_WORKERS = 7;
 
 
 if (typeof Memory.nextWorkerId === 'undefined') {
@@ -72,7 +72,7 @@ module.exports = class {
     spawn(genetics) {
         let spawn = Game.spawns['MARA'];
         let workerId = '|' + Memory.nextWorkerId + '|';
-        let err = spawn.spawnCreep([WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE], workerId, {
+        let err = spawn.spawnCreep([WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE], workerId, {
             memory: {
                 role: 'worker'
             }

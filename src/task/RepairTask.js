@@ -71,12 +71,12 @@ const Task = class {
             return;
         }
 
-        let roadId = this._m.memory.roadId;
-        let road = Game.getObjectById(roadId);
-        if (road) {
-            if (road.hits < road.hitsMax) {
-                if (creep.repair(road) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(road);
+        let id = this._m.memory.targetId;
+        let structure = Game.getObjectById(id);
+        if (structure) {
+            if (structure.hits < structure.hitsMax) {
+                if (creep.repair(structure) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(structure);
                 }
             }
         }
@@ -95,7 +95,7 @@ const Task = class {
             worker.clearTaskData();
         }
         data.state = data.state || 0;
-        console.log('[RoadRepair' + worker.getAssignedTaskId() + '] updating ' + worker.getId() + ',' + data.state);
+        console.log('[Repair ' + worker.getAssignedTaskId() + '] updating ' + worker.getId() + ',' + data.state);
         switch(data.state) {
             case ST_INIT:
                 this._doInitState(worker);
@@ -116,5 +116,5 @@ const Task = class {
 }
 
 
-Task.TYPE = 'repair road';
+Task.TYPE = 'repair';
 module.exports = Task;
