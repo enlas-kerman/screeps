@@ -24,7 +24,7 @@ module.exports = class {
 
         for (let type in this.goals) {
             let goal = this.goals[type];
-            goal.analyze(this.room, tasks.getTaskTable());
+            goal.analyze(this.room, tasks);
         }
 
         //console.log('Strategy: updating plan');
