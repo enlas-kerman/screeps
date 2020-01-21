@@ -1,6 +1,6 @@
 let Worker = require('supervisor_Worker');
 
-const MAX_WORKERS = 8;
+const MAX_WORKERS = 10;
 
 
 if (typeof Memory.nextWorkerId === 'undefined') {
