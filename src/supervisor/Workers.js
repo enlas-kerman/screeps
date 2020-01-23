@@ -1,6 +1,6 @@
 let Worker = require('supervisor_Worker');
 
-const MAX_WORKERS = 10;
+const MAX_WORKERS = 11;
 
 
 if (typeof Memory.nextWorkerId === 'undefined') {
@@ -103,7 +103,7 @@ module.exports = class {
                 if (task) {
                     task.update(worker);
                 } else {
-                    console.log("No task found for " + assignedTaskId);
+                    console.log("Workers.update: No task found for " + assignedTaskId);
                     this.unassign(workerId);
                 }
             }

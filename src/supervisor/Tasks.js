@@ -1,8 +1,10 @@
-let RepairTask = require('task_RepairTask');
-let UpgradeControllerTask = require('task_UpgradeControllerTask');
-let DeliverEnergyTask = require('task_DeliverEnergyTask');
-let BuildTask = require('task_BuildTask');
-let HarvestingTask = require('task_HarvestingTask');
+const RepairTask = require('task_RepairTask');
+const UpgradeControllerTask = require('task_UpgradeControllerTask');
+const DeliverEnergyTask = require('task_DeliverEnergyTask');
+const BuildTask = require('task_BuildTask');
+const HarvestingTask = require('task_HarvestingTask');
+const ExtractionTask = require('task_ExtractionTask');
+const DeliverTask = require('task_DeliverTask');
 
 
 /**
@@ -14,6 +16,8 @@ taskFws[UpgradeControllerTask.TYPE] = new UpgradeControllerTask();
 taskFws[DeliverEnergyTask.TYPE] = new DeliverEnergyTask();
 taskFws[BuildTask.TYPE] = new BuildTask();
 taskFws[HarvestingTask.TYPE] = new HarvestingTask();
+taskFws[ExtractionTask.TYPE] = new ExtractionTask();
+taskFws[DeliverTask.TYPE] = new DeliverTask();
 
 const Tasks = class {
 
@@ -28,6 +32,8 @@ const Tasks = class {
         memory.types[DeliverEnergyTask.TYPE] = memory.types[DeliverEnergyTask.TYPE] || {};
         memory.types[BuildTask.TYPE] = memory.types[BuildTask.TYPE] || {};    
         memory.types[HarvestingTask.TYPE] = memory.types[HarvestingTask.TYPE] || {};    
+        memory.types[ExtractionTask.TYPE] = memory.types[ExtractionTask.TYPE] || {};
+        memory.types[DeliverTask.TYPE] = memory.types[DeliverTask.TYPE] || {};
         memory.terminated = memory.terminated || {};
 
     }
@@ -61,6 +67,7 @@ const Tasks = class {
 
 
     removeTask(taskId) {
+        console.log('removeTask: ' + taskId);
         if (this.memory.index[taskId]) {
             let type = this.memory.index[taskId].type;
             delete this.memory.index[taskId];
@@ -77,6 +84,7 @@ const Tasks = class {
 
 
     terminate(taskId) {
+        console.log("terminate: " + taskId);
         if (this.memory.index[taskId]) {
             let task = this.memory.index[taskId];
             this.memory.terminated[taskId] = task;

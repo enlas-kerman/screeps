@@ -4,7 +4,8 @@ let DeliverEnergyTask = require('task_DeliverEnergyTask');
 const findSpawnsAndExtsNeedingEnergy = (room) => {
     return room.find(FIND_STRUCTURES, {
         filter: (s) => {
-            return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION || s.structureType == STRUCTURE_TOWER) && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+            return ((s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION) && (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0))
+                || ((s.structureType == STRUCTURE_TOWER) && (s.store.getFreeCapacity(RESOURCE_ENERGY) > s.store.getCapacity(RESOURCE_ENERGY) * 0.50));
         }
     });
 }

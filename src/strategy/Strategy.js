@@ -1,9 +1,10 @@
 
-let RepairGoal = require('task_RepairGoal');
-let UpgradeControllerGoal = require('task_UpgradeControllerGoal');
-let SpawnEnergyGoal = require('task_SpawnEnergyGoal');
-let BuildGoal = require('task_BuildGoal');
-let HarvestingGoal = require('task_HarvestingGoal');
+const RepairGoal = require('task_RepairGoal');
+const UpgradeControllerGoal = require('task_UpgradeControllerGoal');
+const SpawnEnergyGoal = require('task_SpawnEnergyGoal');
+const BuildGoal = require('task_BuildGoal');
+const HarvestingGoal = require('task_HarvestingGoal');
+const ExtractionGoal = require('task_ExtractionGoal');
 
 
 module.exports = class {
@@ -17,6 +18,7 @@ module.exports = class {
         this.goals['spawn energy goal'] = new SpawnEnergyGoal('SpawnEnergyGoal-' + room.name);
         this.goals['build goal'] = new BuildGoal('BuildGoal-' + room.name);
         this.goals['harvesting'] = new HarvestingGoal('HarvestingGoal-' + room.name);
+        this.goals['extraction'] = new ExtractionGoal('ExtractionGoal-' + room.name);
     }
 
 
@@ -27,7 +29,6 @@ module.exports = class {
             goal.analyze(this.room, tasks);
         }
 
-        //console.log('Strategy: updating plan');
         return tasks.getTasksByPriority();
     }
 
@@ -71,15 +72,33 @@ module.exports = class {
                     let otherTaskWorkers = Object.values(otherTask.assignedWorkers);
                     if (otherTaskWorkers.length > 0) {
                         let reassignedWorkerId = otherTaskWorkers[0];
-                        console.log('>>>>>>>>> reassigning worker ' + reassignedWorkerId + ' from lower priority task ' + otherTask.id);
-                        
-                        // unassign
-                        workers.unassign(reassignedWorkerId);
-                        delete otherTask.assignedWorkers[reassignedWorkerId];
+                        let reassignedCreep = Game.creeps[reassignedWorkerId];
+                        if (reassignedCreep) {
+                            
+                            let targetInRange = true;
+                            let taskTargetId = task.targetId;
+                            if (taskTargetId) {
+                                let taskTarget = Game.getObjectById(taskTargetId);
+                                if (taskTarget) {
+                                    let range = taskTarget.pos.getRangeTo(reassignedCreep);
+                                    if (range > 10) {
+                                        targetInRange = false;
+                                    }
+                                }
+                            }
+                            
+                            if (targetInRange) {
+                                console.log('>>>>>>>>> reassigning worker ' + reassignedWorkerId + ' from lower priority task ' + otherTask.id);
+                                
+                                // unassign
+                                workers.unassign(reassignedWorkerId);
+                                delete otherTask.assignedWorkers[reassignedWorkerId];
 
-                        // assign
-                        task.assignedWorkers[reassignedWorkerId] = reassignedWorkerId;
-                        workers.assign(reassignedWorkerId, task.id);
+                                // assign
+                                task.assignedWorkers[reassignedWorkerId] = reassignedWorkerId;
+                                workers.assign(reassignedWorkerId, task.id);
+                            }
+                        }
                     }
 
                     if (Object.keys(task.assignedWorkers).length >= task.minWorkers) {
