@@ -1,201 +1,148 @@
-let RepairRoadTask = require('task_RepairRoadTask');
+let RepairTask = require('task_RepairTask');
 let UpgradeControllerTask = require('task_UpgradeControllerTask');
 let DeliverEnergyTask = require('task_DeliverEnergyTask');
 let BuildTask = require('task_BuildTask');
+let HarvestingTask = require('task_HarvestingTask');
+
 
 /**
- * 
- * memory.types
- * memory.index
- * 
- * @param {*} memory 
- * 
+ * Task flyweights.  Defined module-scope to avoid rebuilding them every tic
  */
-const TaskTable = function(memory) {
+const taskFws = {};
+taskFws[RepairTask.TYPE] = new RepairTask();
+taskFws[UpgradeControllerTask.TYPE] = new UpgradeControllerTask();
+taskFws[DeliverEnergyTask.TYPE] = new DeliverEnergyTask();
+taskFws[BuildTask.TYPE] = new BuildTask();
+taskFws[HarvestingTask.TYPE] = new HarvestingTask();
 
-    memory.terminated = memory.terminated || {};
+const Tasks = class {
 
-    return {
+    constructor(room, memory) {
+        this.room = room;
+        this.memory = memory;
 
-        exists: function(id) {
-            return typeof(memory.index[id]) !== 'undefined';
-        },
-
-
-        addTask: function(taskInfo) {
-            console.log('adding task with id ' + taskInfo.id + ' and type ' + taskInfo.type);
-            if (typeof(taskInfo.score) == 'undefined') {
-                taskInfo.score = 0;
-            }
-            if (typeof(taskInfo.minWorkers) == 'undefined') {
-                taskInfo.minWorkers = 1;
-            }
-            if (typeof(taskInfo.maxWorkers) == 'undefined') {
-                taskInfo.maxWorkers = 1;
-            }
-            taskInfo.assignedWorkers = taskInfo.assignedWorkers || {};
-            let id = taskInfo.id;
-            if (!memory.index[id]) {
-                memory.index[id] = taskInfo;
-                memory.types[taskInfo.type] = memory.types[taskInfo.type] || {};
-                memory.types[taskInfo.type][id] = true;
-            }
-            return taskInfo;
-        },        
-
-
-        // tasks cannot be removed if their are assigned workers
-        removeTask: function(taskId) {
-            if (memory.index[taskId]) {
-                let type = memory.index[taskId].type;
-                delete memory.index[taskId];
-                delete memory.types[type][taskId];
-            }
-            if (memory.terminated[taskId]) {
-                if (Object.keys(memory.terminated[taskId].assignedWorkers).length > 0) {
-                    console.log('Unable to remove terminated task because it has assigned workers. ' + taskId);
-                } else {
-                    delete memory.terminated[taskId];
-                }
-            }
-        },
-
-
-        terminate: function(taskId) {
-            if (memory.index[taskId]) {
-                let task = memory.index[taskId];
-                memory.terminated[taskId] = task;
-                delete memory.index[taskId];
-                delete memory.types[task.type][taskId];
-            }
-        },
-
-
-        getById: function(id) {
-            return memory.index[id];
-        },
-
-
-        getByType: function(type, opts) {
-            let typeTasks = Object.keys(memory.types[type]);
-            let tasks = new Array(typeTasks.length);
-            for (let i=0; i < typeTasks.length; i++) {
-                tasks[i] = memory.index[typeTasks[i]];
-            }
-            if (opts && opts.filter) {
-                tasks = _.filter(tasks, opts.filter);
-            }
-            return tasks;
-        },
-
-
-        getTerminatedTasks: function() {
-            return Object.values(memory.terminated);
-        },
-
-
-        getTotalNumberAssigned: function(type) {
-            let count = 0;
-            for (id in memory.types[type]) {
-                let task = memory.index[id];
-                count += Object.keys(task.assignedWorkers).length;
-            }
-            return count;
-        },
-
-
-        getTasksByPriority: function() {
-            var tasks = Object.values(memory.index);
-            tasks.sort((a,b) => {
-                return b.score - a.score;
-            });
-            return tasks;
-        }
+        memory.index = memory.index || {};
+        memory.types = memory.types || {};
+        memory.types[RepairTask.TYPE] = memory.types[RepairTask.TYPE] || {};
+        memory.types[UpgradeControllerTask.TYPE] = memory.types[UpgradeControllerTask.TYPE] || {};
+        memory.types[DeliverEnergyTask.TYPE] = memory.types[DeliverEnergyTask.TYPE] || {};
+        memory.types[BuildTask.TYPE] = memory.types[BuildTask.TYPE] || {};    
+        memory.types[HarvestingTask.TYPE] = memory.types[HarvestingTask.TYPE] || {};    
+        memory.terminated = memory.terminated || {};
 
     }
+ 
 
-}
-
-
-module.exports = function(room, memory) {
-
-    memory.types = memory.types || {};
-    memory.index = memory.index || {};
-
-    const taskFws = {}; // flyweight objects
-    taskFws[RepairRoadTask.TYPE] = new RepairRoadTask();
-    taskFws[UpgradeControllerTask.TYPE] = new UpgradeControllerTask();
-    taskFws[DeliverEnergyTask.TYPE] = new DeliverEnergyTask();
-    taskFws[BuildTask.TYPE] = new BuildTask();
-
-    memory.types[RepairRoadTask.TYPE] = memory.types[RepairRoadTask.TYPE] || {};
-    memory.types[UpgradeControllerTask.TYPE] = memory.types[UpgradeControllerTask.TYPE] || {};
-    memory.types[DeliverEnergyTask.TYPE] = memory.types[DeliverEnergyTask.TYPE] || {};
-    memory.types[BuildTask.TYPE] = memory.types[BuildTask.TYPE] || {};
-
-    const tasks = new TaskTable(memory);
-
-    return {
-
-        analyze: function() {
-
-            // for (type in goals) {
-            //     let goal = goals[type];
-            //     memory.types[type] = memory.types[type] || {};
-            //     goal.analyze(room, tasks);
-            // }
-        },
-
-        getTaskTable: function() {
-            return tasks;
-        },
+    exists(id) {
+        return typeof(this.memory.index[id]) !== 'undefined';
+    }
 
 
-        getTaskById: function(id) {
-            return tasks.getById(id);
-        },
+    addTask(taskInfo) {
+        console.log('adding task with id ' + taskInfo.id + ' and type ' + taskInfo.type);
+        if (typeof(taskInfo.score) == 'undefined') {
+            taskInfo.score = 0;
+        }
+        if (typeof(taskInfo.minWorkers) == 'undefined') {
+            taskInfo.minWorkers = 1;
+        }
+        if (typeof(taskInfo.maxWorkers) == 'undefined') {
+            taskInfo.maxWorkers = 1;
+        }
+        taskInfo.assignedWorkers = taskInfo.assignedWorkers || {};
+        let id = taskInfo.id;
+        if (!this.memory.index[id]) {
+            this.memory.index[id] = taskInfo;
+            this.memory.types[taskInfo.type] = this.memory.types[taskInfo.type] || {};
+            this.memory.types[taskInfo.type][id] = true;
+        }
+        return taskInfo;
+    }
 
 
-        getPendingTasks: function(type) {
-            return tasks.getByType(type);
-        },
-
-
-        getTotalNumberAssigned: function(type) {
-            return tasks.getTotalNumberAssigned(type);
-        },
-
-
-        getTerminatedTasks: function() {
-            return tasks.getTerminatedTasks();
-        },
-
-
-        removeTask: function(task) {
-            tasks.removeTask(task.id);
-        },
-
-
-        getTaskFor: function(taskId) {
-            let task = tasks.getById(taskId);
-            if (task) {
-                if (taskFws[task.type]) {
-                    let taskFw = taskFws[task.type];
-                    taskFw.setState(task);
-                    return taskFw;
-                } else {
-                    console.log('Warning: task flyweight does not exist for type ' + task.type);
-                }
+    removeTask(taskId) {
+        if (this.memory.index[taskId]) {
+            let type = this.memory.index[taskId].type;
+            delete this.memory.index[taskId];
+            delete this.memory.types[type][taskId];
+        }
+        if (this.memory.terminated[taskId]) {
+            if (Object.keys(this.memory.terminated[taskId].assignedWorkers).length > 0) {
+                console.log('Unable to remove terminated task because it has assigned workers. ' + taskId);
             } else {
-                console.log('Warning: task does not exist ' + taskId);
+                delete this.memory.terminated[taskId];
             }
-        },
-
-
-        getTasksByPriority: function() {
-            return tasks.getTasksByPriority();
         }
+    }
 
+
+    terminate(taskId) {
+        if (this.memory.index[taskId]) {
+            let task = this.memory.index[taskId];
+            this.memory.terminated[taskId] = task;
+            delete this.memory.index[taskId];
+            delete this.memory.types[task.type][taskId];
+        }
+    }
+
+
+    getById(id) {
+        return this.memory.index[id];
+    }
+
+
+    getByType(type, opts) {
+        let typeTasks = Object.keys(this.memory.types[type]);
+        let tasks = new Array(typeTasks.length);
+        for (let i=0; i < typeTasks.length; i++) {
+            tasks[i] = this.memory.index[typeTasks[i]];
+        }
+        if (opts && opts.filter) {
+            tasks = _.filter(tasks, opts.filter);
+        }
+        return tasks;
+    }
+
+    
+    getTerminatedTasks() {
+        return Object.values(this.memory.terminated);
+    }
+
+
+    getTotalNumberAssigned(type) {
+        let count = 0;
+        for (id in this.memory.types[type]) {
+            let task = this.memory.index[id];
+            count += Object.keys(task.assignedWorkers).length;
+        }
+        return count;
+    }
+
+
+    getTasksByPriority() {
+        var tasks = Object.values(this.memory.index);
+        tasks.sort((a,b) => {
+            return b.score - a.score;
+        });
+        return tasks;
+    }
+
+
+    getTaskFor(taskId) {
+        let task = this.getById(taskId);
+        if (task) {
+            if (taskFws[task.type]) {
+                let taskFw = taskFws[task.type];
+                taskFw.setState(task);
+                return taskFw;
+            } else {
+                console.log('Warning: task flyweight does not exist for type ' + task.type);
+            }
+        } else {
+            console.log('Warning: task does not exist ' + taskId);
+        }
     }
 
 }
+
+module.exports = Tasks;

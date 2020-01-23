@@ -15,7 +15,7 @@ const cleanupTerminatedTasks = (tasks, workers) => {
             workers.unassign(workerId);
         });
         task.assignedWorkers = {};
-        tasks.removeTask(task);
+        tasks.removeTask(task.id);
     });
 }
 
@@ -25,7 +25,7 @@ const cleanupDeadWorkers = (tasks, workers) => {
     deadWorkers.forEach((deadWorker) => {
         console.log("Cleaning up dead worker " + deadWorker.id);
         if (deadWorker.assignedTaskId) {
-            let task = tasks.getTaskById(deadWorker.assignedTaskId);
+            let task = tasks.getById(deadWorker.assignedTaskId);
             if (task.assignedWorkers[deadWorker.id]) {
                 delete task.assignedWorkers[deadWorker.id];
             }
@@ -74,7 +74,7 @@ module.exports = class {
                 this.workers.unassign(workerId);
             });
             task.assignedWorkers = {};
-            this.tasks.removeTask(task);
+            this.tasks.removeTask(task.id);
         })
     }
 }

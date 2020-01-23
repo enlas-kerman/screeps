@@ -1,20 +1,14 @@
-/**
- * This goal attempts to maintain the roads within a room.
- * When roads fall below a threshold of hits, this goal
- * plans repair tasks to repair them.
- */
-
-let RepairRoadTask = require('task_RepairRoadTask');
+let RepairTask = require('task_RepairTask');
 
 
 const TICS_REPAIR_THRESHOLD = 0.75;
 
     
 
-const findRoadsNeedingRepair = (room) => {
+const findStructuresNeedingRepair = (room) => {
     return room.find(FIND_STRUCTURES, {
         filter: (s) => {
-            // repair once a roads hits drop below 85% max
+            // repair once a structure hits drop below 85% max
             return (s.structureType == STRUCTURE_ROAD || s.structureType == STRUCTURE_CONTAINER) && ((s.hits / s.hitsMax) < TICS_REPAIR_THRESHOLD);
         }
     });
@@ -30,28 +24,27 @@ const Goal = class {
 
     analyze(room, taskTable) {
         
-        let pendingTasks = taskTable.getByType(RepairRoadTask.TYPE);
+        let pendingTasks = taskTable.getByType(RepairTask.TYPE);
         for (let i=0; i < pendingTasks.length; i++) {
             let task = pendingTasks[i];
-            let road = Game.getObjectById(task.roadId);
-            // if a road was fully repaired, terminate the task
+            let structure = Game.getObjectById(task.targetId);
+            // if a structure was fully repaired, terminate the task
             // otherwise keep the task pending
-            if (road == null || road.hits == road.hitsMax) {
+            if (structure == null || structure.hits == structure.hitsMax) {
                 taskTable.terminate(task.id);
             }
         }
 
-        // find new road tasks
-        let roads = findRoadsNeedingRepair(room);
-        for (let i=0; i < roads.length; i++) {
-            let road = roads[i];
-            let key = 'repair-road-' + road.id;
+        let structures = findStructuresNeedingRepair(room);
+        for (let i=0; i < structures.length; i++) {
+            let structure = structures[i];
+            let key = RepairTask.TYPE + '-' + structure.id;
             if (!taskTable.exists(key)) {
                 taskTable.addTask({
                     id: key,
-                    type: RepairRoadTask.TYPE,
+                    type: RepairTask.TYPE,
                     goal: this.goalId,
-                    roadId: road.id,
+                    targetId: structure.id,
                     score: 10,
                     minWorkers: 1,
                     maxWorkers: 3,

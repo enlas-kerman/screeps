@@ -1,33 +1,9 @@
+let { doCollectEnergy, resetEnergyAffinity } = require('task_CollectEnergy');
+
+
 const ST_INIT = 0;
 const ST_COLLECT_ENERGY = 1;
 const ST_DELIVER = 2;
-
-
-const findBestEnergySource = (room, creep) => {
-
-    let costs = new PathFinder.CostMatrix;
-    room.find(FIND_CREEPS).forEach((creep) => {
-        costs.set(creep.pos.x, creep.pos.y, 0xff);
-    });
-
-    let minCost = 1000000;
-    let minCostSource = null;
-    room.find(FIND_SOURCES).forEach((source) => {
-        let ret = PathFinder.search(creep.pos, [{ pos: source.pos, range: 1}], {
-            plainCost: 2,
-            swampCost: 10,
-            roomCallback: () => {
-                return costs;
-            }
-        });
-        if (!ret.incomplete && ret.cost <= minCost) {
-            minCost = ret.cost;
-            minCostSource = source;
-        }
-    });
-
-    return minCostSource;
-};
 
 
 
@@ -44,22 +20,14 @@ const Task = class {
             worker.getTaskData().state = ST_DELIVER;
         } else {
             worker.getTaskData().state = ST_COLLECT_ENERGY;
+            resetEnergyAffinity(worker);
         }
     }
 
 
     _doCollectEnergyState(worker) {
-        let creep = worker.getCreep();
-        let data = worker.getTaskData();
-        if (creep.store.getFreeCapacity() > 0) {
-            let source = findBestEnergySource(creep.room, creep);
-            if (source) {
-                if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(source);
-                }
-            }
-        } else {
-            data.state = ST_DELIVER;
+        if (doCollectEnergy(worker)) {
+            worker.getTaskData().state = ST_DELIVER;
         }
     }
 
@@ -67,6 +35,7 @@ const Task = class {
     _doDeliverState(worker) {
         let creep = worker.getCreep();
         if (creep.store.getUsedCapacity() == 0) {
+            resetEnergyAffinity(worker);
             worker.getTaskData().state = ST_COLLECT_ENERGY;
             return;
         }
