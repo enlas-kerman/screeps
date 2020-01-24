@@ -6,10 +6,10 @@ let Strategy = require('strategy_Strategy');
 const ST_PAUSED = 0;
 const ST_RUNNING = 1;
 
-
-Memory.supervisor = Memory.supervisor || {};
-Memory.supervisor.tasks = Memory.supervisor.tasks || {};
-Memory.supervisor.workers = Memory.supervisor.workers || {};
+Memory.supervisors = Memory.supervisors || {};
+// Memory.supervisor = Memory.supervisor || {};
+// Memory.supervisor.tasks = Memory.supervisor.tasks || {};
+// Memory.supervisor.workers = Memory.supervisor.workers || {};
 
 
 const cleanupTerminatedTasks = (tasks, workers) => {
@@ -38,13 +38,22 @@ const cleanupDeadWorkers = (tasks, workers) => {
 }
 
 
+const initMemory = (roomName) => {
+    Memory.supervisors[roomName] = {
+        tasks: {},
+        workers: {},
+        state: ST_RUNNING
+    };
+    return Memory.supervisors[roomName];
+}
+
+
 module.exports = class {
 
     constructor(roomName) {
-        this.memory = Memory.supervisor;
-        this.memory.state = typeof(this.memory.state) == 'undefined' ? ST_RUNNING : this.memory.state;
-        this.workers = new Workers(Game.creeps, Memory.supervisor.workers);
-        this.tasks = new Tasks(Game.rooms[roomName], Memory.supervisor.tasks);
+        this.memory = Memory.supervisors[roomName] || initMemory(roomName);
+        this.workers = new Workers(Game.creeps, this.memory.workers);
+        this.tasks = new Tasks(Game.rooms[roomName], this.memory.tasks);
         this.strategy = new Strategy(Game.rooms[roomName]);
     }
 

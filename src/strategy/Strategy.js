@@ -67,13 +67,12 @@ module.exports = class {
     assign(tasks, workers) {
 
         let pending = this.plan(tasks, workers);
-        console.log('Number of tasks pending: ' + pending.length);
         if (Debug.isTaskRangeVisible()) {
             this.drawTaskRanges(this.room.visual, pending);
         }
 
         let unassigned = workers.getUnassignedWorkers();
-        console.log("Available workers: " + unassigned.length);
+        console.log('Pending Tasks: ' + pending.length + '  --  Available Workers: ' + unassigned.length);
 
 
         // assign workers to tasks until we run out of workers

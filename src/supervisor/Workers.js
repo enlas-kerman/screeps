@@ -18,7 +18,6 @@ module.exports = class {
 
         for (let workerId in workers) {
             if (!creeps[workerId]) {
-                console.log('cleaning up worker: ' + workerId);
                 this.deadWorkers.push(workers[workerId]);
                 delete workers[workerId];
                 delete Memory.creeps[workerId];
