@@ -1,6 +1,5 @@
 const ST_INIT = 0;
-const ST_HARVEST = 1;
-
+const ST_EXTRACT = 1;
 
 
 const Task = class {
@@ -12,11 +11,13 @@ const Task = class {
 
     _doInitState(worker) {
         let data = worker.getTaskData();
-        data.state = ST_HARVEST;
+        let creep = worker.getCreep();
+        creep.drop(RESOURCE_ENERGY);
+        data.state = ST_EXTRACT;
     }
 
 
-    _doHarvestState(worker) {
+    _doExtractState(worker) {
         // move to the container
         let container = Game.getObjectById(this.memory.targetId);
         if (!container) {
@@ -29,10 +30,10 @@ const Task = class {
         } else {
 
             if (creep.store.getFreeCapacity() == 0) {
-                creep.transfer(container, RESOURCE_ENERGY);
+                creep.transfer(container, this.memory.mineralType);
             } else {
-                let source = creep.pos.findClosestByRange(FIND_SOURCES);
-                creep.harvest(source);
+                let mineral = creep.pos.findClosestByRange(FIND_MINERALS);
+                creep.harvest(mineral);
             }
         }
     }
@@ -42,6 +43,7 @@ const Task = class {
         this.memory = state;
     }
 
+
     update(worker) {
         let data = worker.getTaskData();
         if (!data) {
@@ -49,22 +51,24 @@ const Task = class {
             worker.clearTaskData();
         }
         data.state = data.state || 0;
-        //console.log('[Harvesting ' + worker.getAssignedTaskId() + '] updating ' + worker.getId() + ',' + data.state);
+        //console.log('[Extracting ' + worker.getAssignedTaskId() + '] updating ' + worker.getId() + ',' + data.state);
+
         switch(data.state) {
             case ST_INIT:
                 this._doInitState(worker);
                 break;
-            case ST_HARVEST:
-                this._doHarvestState(worker);
+            case ST_EXTRACT:
+                this._doExtractState(worker);
                 break;
             default:
                 console.log('Warning: unknown state ' + data.state);
                 data.state = ST_INIT;
                 break;
         }
+
     }
 
 }
 
-Task.TYPE = 'harvesting';
+Task.TYPE = 'extraction';
 module.exports = Task;

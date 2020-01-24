@@ -60,7 +60,7 @@ const Task = class {
     update(worker) {
         let data = worker.getTaskData();
         data.state = data.state || 0;
-        console.log('[DeliverEnergyTask ' + this._m.memory.id + '] ' + worker.getId() + ' state ' + worker.getTaskData().state);
+        //console.log('[DeliverEnergyTask ' + this._m.memory.id + '] ' + worker.getId() + ' state ' + worker.getTaskData().state);
         switch(data.state) {
             case ST_INIT:
                 this._doInitState(worker);

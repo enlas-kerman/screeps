@@ -1,10 +1,13 @@
 
-let RepairGoal = require('task_RepairGoal');
-let UpgradeControllerGoal = require('task_UpgradeControllerGoal');
-let SpawnEnergyGoal = require('task_SpawnEnergyGoal');
-let BuildGoal = require('task_BuildGoal');
-let HarvestingGoal = require('task_HarvestingGoal');
+const RepairGoal = require('task_RepairGoal');
+const UpgradeControllerGoal = require('task_UpgradeControllerGoal');
+const SpawnEnergyGoal = require('task_SpawnEnergyGoal');
+const BuildGoal = require('task_BuildGoal');
+const HarvestingGoal = require('task_HarvestingGoal');
+const ExtractionGoal = require('task_ExtractionGoal');
+const Debug = require('debug');
 
+const MINIMUM_TASK_RANGE = 14;
 
 module.exports = class {
 
@@ -17,6 +20,7 @@ module.exports = class {
         this.goals['spawn energy goal'] = new SpawnEnergyGoal('SpawnEnergyGoal-' + room.name);
         this.goals['build goal'] = new BuildGoal('BuildGoal-' + room.name);
         this.goals['harvesting'] = new HarvestingGoal('HarvestingGoal-' + room.name);
+        this.goals['extraction'] = new ExtractionGoal('ExtractionGoal-' + room.name);
     }
 
 
@@ -27,8 +31,33 @@ module.exports = class {
             goal.analyze(this.room, tasks);
         }
 
-        //console.log('Strategy: updating plan');
         return tasks.getTasksByPriority();
+    }
+
+
+    drawTaskRanges(visual, tasks) {
+        for (let i=0; i < tasks.length; i++) {
+            let task = tasks[i];
+            if (task.targetId) {
+                let object = Game.getObjectById(task.targetId);
+                if (object.pos) {
+                    visual.circle(object.pos, {
+                        radius: MINIMUM_TASK_RANGE,
+                        stroke: '#4050a0ff',
+                        fill: '#10104030'
+                    });
+
+                    for (let workerId in task.assignedWorkers) {
+                        let creep = Game.creeps[workerId];
+                        visual.line(object.pos, creep.pos, {
+                            color: '#e06060ff',
+                            lineStyle: 'dashed',
+                            width: 0.2
+                        });
+                    }
+                }
+            }
+        }
     }
 
 
@@ -36,6 +65,9 @@ module.exports = class {
 
         let pending = this.plan(tasks, workers);
         console.log('Number of tasks pending: ' + pending.length);
+        if (Debug.isTaskRangeVisible()) {
+            this.drawTaskRanges(this.room.visual, pending);
+        }
 
         let unassigned = workers.getUnassignedWorkers();
         console.log("Available workers: " + unassigned.length);
@@ -71,15 +103,33 @@ module.exports = class {
                     let otherTaskWorkers = Object.values(otherTask.assignedWorkers);
                     if (otherTaskWorkers.length > 0) {
                         let reassignedWorkerId = otherTaskWorkers[0];
-                        console.log('>>>>>>>>> reassigning worker ' + reassignedWorkerId + ' from lower priority task ' + otherTask.id);
-                        
-                        // unassign
-                        workers.unassign(reassignedWorkerId);
-                        delete otherTask.assignedWorkers[reassignedWorkerId];
+                        let reassignedCreep = Game.creeps[reassignedWorkerId];
+                        if (reassignedCreep) {
+                            
+                            let targetInRange = true;
+                            let taskTargetId = task.targetId;
+                            if (taskTargetId) {
+                                let taskTarget = Game.getObjectById(taskTargetId);
+                                if (taskTarget) {
+                                    let range = taskTarget.pos.getRangeTo(reassignedCreep);
+                                    if (range > MINIMUM_TASK_RANGE) {
+                                        targetInRange = false;
+                                    }
+                                }
+                            }
+                            
+                            if (targetInRange) {
+                                console.log('>>>>>>>>> reassigning worker ' + reassignedWorkerId + ' from lower priority task ' + otherTask.id);
+                                
+                                // unassign
+                                workers.unassign(reassignedWorkerId);
+                                delete otherTask.assignedWorkers[reassignedWorkerId];
 
-                        // assign
-                        task.assignedWorkers[reassignedWorkerId] = reassignedWorkerId;
-                        workers.assign(reassignedWorkerId, task.id);
+                                // assign
+                                task.assignedWorkers[reassignedWorkerId] = reassignedWorkerId;
+                                workers.assign(reassignedWorkerId, task.id);
+                            }
+                        }
                     }
 
                     if (Object.keys(task.assignedWorkers).length >= task.minWorkers) {

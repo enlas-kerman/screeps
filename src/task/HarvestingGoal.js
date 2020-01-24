@@ -27,7 +27,7 @@ const Goal = class {
         for (let i=0; i < containers.length; i++) {
             let container = containers[i];
             let key = HarvestingTask.TYPE + '-' + container.id;
-            if (!tasks.exists(key)) {
+            if (!tasks.exists(key) && (container.store.getFreeCapacity() > 200)) {
                 tasks.addTask({
                     id: key,
                     type: HarvestingTask.TYPE,
@@ -44,9 +44,11 @@ const Goal = class {
 
 
     findAvailableContainers(room) {
+        let sources = room.find(FIND_SOURCES);
         return room.find(FIND_STRUCTURES, {
             filter: (s) => {
-                return (s.structureType == STRUCTURE_CONTAINER) && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                return (s.pos.findInRange(sources, 1).length > 0) &&
+                    (s.structureType == STRUCTURE_CONTAINER) && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
             }
         });
     }

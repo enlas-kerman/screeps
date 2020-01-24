@@ -36,7 +36,7 @@ const Task = class {
             resetEnergyAffinity(worker);
             return;
         }
-        let siteId = this._m.memory.siteId;
+        let siteId = this._m.memory.targetId;
         let site = Game.getObjectById(siteId);
         if (site) {
             if (creep.build(site) == ERR_NOT_IN_RANGE) {
@@ -54,7 +54,7 @@ const Task = class {
     update(worker) {
         let data = worker.getTaskData();
         data.state = data.state || 0;
-        console.log('[BuildTask ' + this._m.memory.id + '] ' + worker.getId() + ' state ' + worker.getTaskData().state);
+        //console.log('[BuildTask ' + this._m.memory.id + '] ' + worker.getId() + ' state ' + worker.getTaskData().state);
         switch(data.state) {
             case ST_INIT:
                 this._doInitState(worker);

@@ -14,6 +14,7 @@ const Goal = class {
             type: UpgradeControllerTask.TYPE,
             goal: this.goalId,
             roomId: room.name,
+            targetId: room.controller.id,
             score: 1,
             minWorkers: 100,
             maxWorkers: 100

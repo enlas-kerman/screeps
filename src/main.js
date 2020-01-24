@@ -1,8 +1,9 @@
-let { Creeps } = require('controller_Creeps');
-let { Towers } = require('controller_Towers');
-let Supervisor = require('supervisor_Supervisor');
+const { Creeps } = require('controller_Creeps');
+const { Towers } = require('controller_Towers');
+const Supervisor = require('supervisor_Supervisor');
+const Debug = require('debug');
 
-var me = this;
+let me = this;
 
 module.exports.loop = () => {
    
@@ -42,4 +43,13 @@ me.goals = () => {
         console.log('  Description: ' + goal.description);
         console.log(']');
     })
+}
+
+
+me.showTasks = () => {
+    Debug.setTaskRangeVisible(true);
+}
+
+me.hideTasks = () => {
+    Debug.setTaskRangeVisible(false);
 }
