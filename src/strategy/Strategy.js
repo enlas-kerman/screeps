@@ -5,7 +5,9 @@ const SpawnEnergyGoal = require('task_SpawnEnergyGoal');
 const BuildGoal = require('task_BuildGoal');
 const HarvestingGoal = require('task_HarvestingGoal');
 const ExtractionGoal = require('task_ExtractionGoal');
+const Debug = require('debug');
 
+const MINIMUM_TASK_RANGE = 14;
 
 module.exports = class {
 
@@ -33,10 +35,39 @@ module.exports = class {
     }
 
 
+    drawTaskRanges(visual, tasks) {
+        for (let i=0; i < tasks.length; i++) {
+            let task = tasks[i];
+            if (task.targetId) {
+                let object = Game.getObjectById(task.targetId);
+                if (object.pos) {
+                    visual.circle(object.pos, {
+                        radius: MINIMUM_TASK_RANGE,
+                        stroke: '#4050a0ff',
+                        fill: '#10104030'
+                    });
+
+                    for (let workerId in task.assignedWorkers) {
+                        let creep = Game.creeps[workerId];
+                        visual.line(object.pos, creep.pos, {
+                            color: '#e06060ff',
+                            lineStyle: 'dashed',
+                            width: 0.2
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+
     assign(tasks, workers) {
 
         let pending = this.plan(tasks, workers);
         console.log('Number of tasks pending: ' + pending.length);
+        if (Debug.isTaskRangeVisible()) {
+            this.drawTaskRanges(this.room.visual, pending);
+        }
 
         let unassigned = workers.getUnassignedWorkers();
         console.log("Available workers: " + unassigned.length);
@@ -81,7 +112,7 @@ module.exports = class {
                                 let taskTarget = Game.getObjectById(taskTargetId);
                                 if (taskTarget) {
                                     let range = taskTarget.pos.getRangeTo(reassignedCreep);
-                                    if (range > 10) {
+                                    if (range > MINIMUM_TASK_RANGE) {
                                         targetInRange = false;
                                     }
                                 }

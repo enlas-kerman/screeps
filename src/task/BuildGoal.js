@@ -22,7 +22,7 @@ const Goal = class {
         });
         for (let i=0; i < pendingTasks.length; i++) {
             let task = pendingTasks[i];
-            let site = Game.getObjectById(task.siteId);
+            let site = Game.getObjectById(task.targetId);
             if (site == null) {
                 tasks.terminate(task.id);
             }
@@ -37,7 +37,7 @@ const Goal = class {
                     id: key,
                     type: BuildTask.TYPE,
                     goal: this.goalId,
-                    siteId: site.id,
+                    targetId: site.id,
                     score: 10,
                     minWorkers: 3,
                     maxWorkers: 6,

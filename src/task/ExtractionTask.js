@@ -51,7 +51,7 @@ const Task = class {
             worker.clearTaskData();
         }
         data.state = data.state || 0;
-        console.log('[Extracting ' + worker.getAssignedTaskId() + '] updating ' + worker.getId() + ',' + data.state);
+        //console.log('[Extracting ' + worker.getAssignedTaskId() + '] updating ' + worker.getId() + ',' + data.state);
 
         switch(data.state) {
             case ST_INIT:

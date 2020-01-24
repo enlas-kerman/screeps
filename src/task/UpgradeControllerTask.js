@@ -12,9 +12,20 @@ const Task = class {
     }
 
 
+    dropResources(worker) {
+        let creep = worker.getCreep();
+        for (let name in creep.store) {
+            if (name !== RESOURCE_ENERGY) {
+                creep.drop(name);
+            }
+        }
+    }
+
+
     _doInitState(worker) {
         let creep = worker.getCreep();
-        if (creep.store.getUsedCapacity() > 10) {
+        this.dropResources(worker);
+        if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 10) {
             worker.getTaskData().state = ST_UPGRADE;
         } else {
             worker.getTaskData().state = ST_COLLECT_ENERGY;
@@ -32,7 +43,7 @@ const Task = class {
 
     _doUpgradeState(worker) {
         let creep = worker.getCreep();
-        if (creep.store.getUsedCapacity() == 0) {
+        if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
             worker.getTaskData().state = ST_COLLECT_ENERGY;
             resetEnergyAffinity(worker);
             return;

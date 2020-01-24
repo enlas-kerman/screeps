@@ -1,5 +1,5 @@
 
-const TICS_REPAIR_THRESHOLD = 0.75;
+const TICS_REPAIR_THRESHOLD = 0.90;
 
 module.exports = {
 

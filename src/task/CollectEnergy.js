@@ -55,9 +55,11 @@ const doCollectEnergy = (worker) => {
                     creep.moveTo(source);
                 }
             } else {
-                if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                let err = creep.harvest(source);
+                if (err == ERR_NOT_IN_RANGE) {
                     creep.moveTo(source);
-                } else {
+                } else
+                if (err == OK) {
                     data.useContainer = false;
                 }
             }

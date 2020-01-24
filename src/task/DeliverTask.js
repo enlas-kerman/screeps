@@ -32,7 +32,7 @@ const Task = class {
         }
 
         let creep = worker.getCreep();
-        if (creep.store.getFreeCapacity(task.resourceType) == 0) {
+        if (creep.store.getFreeCapacity() == 0) {
             worker.getTaskData().state = ST_DELIVER;
             return;
         }
@@ -48,18 +48,20 @@ const Task = class {
         let task = this._m.memory;
 
         let creep = worker.getCreep();
-        if (!creep || creep.store.getUsedCapacity(task.resourceType) == 0) {
+        if (!creep || creep.store.getUsedCapacity() == 0) {
             worker.getTaskData().state = ST_COLLECT;
             return;
         }
 
         let destination = Game.getObjectById(task.targetId);
-        if (!destination || destination.store.getFreeCapacity(task.resourceType) == 0) {
+        if (!destination || destination.store.getFreeCapacity() == 0) {
             return;
         }
 
-        if (creep.transfer(destination, task.resourceType) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(destination);
+        for (let resourceName in creep.store) {
+            if (creep.transfer(destination, resourceName) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(destination);
+            }
         }
     }
 

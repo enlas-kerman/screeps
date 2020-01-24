@@ -61,7 +61,7 @@ const Goal = class {
                 tasks.terminate(task.id);
             } else {
                 let source = Game.getObjectById(task.sourceId);
-                if (!source || source.store.getUsedCapacity(task.resourceType) == 0) {
+                if (!source || source.store.getUsedCapacity(task.resourceType) < 100) {
                     tasks.terminate(task.id);
                 }
             }
@@ -75,7 +75,7 @@ const Goal = class {
                 let key = DeliverTask.TYPE + '-' + container.id + '/' + storage.id;
                 for (let resourceIndex = 0; resourceIndex < containers[i].resources.length; resourceIndex++) {
                     let resourceType = containers[i].resources[resourceIndex];
-                    if (!tasks.exists(key) && (container.store.getUsedCapacity(resourceType) > 500)) {
+                    if (!tasks.exists(key) && (container.store.getUsedCapacity(resourceType) > 1000)) {
                         tasks.addTask({
                             id: key,
                             type: DeliverTask.TYPE,
