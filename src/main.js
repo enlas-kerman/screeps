@@ -49,3 +49,11 @@ me.showTasks = () => {
 me.hideTasks = () => {
     Debug.setTaskRangeVisible(false);
 }
+
+me.pause = () => {
+    me.supervisor.pause();
+}
+
+me.resume = () => {
+    me.supervisor.resume();
+}

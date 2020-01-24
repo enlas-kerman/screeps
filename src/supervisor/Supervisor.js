@@ -3,9 +3,13 @@ let Tasks = require('supervisor_Tasks');
 let Strategy = require('strategy_Strategy');
 
 
-Memory.supervisor = Memory.supervisor || {};
-Memory.supervisor.tasks = Memory.supervisor.tasks || {};
-Memory.supervisor.workers = Memory.supervisor.workers || {};
+const ST_PAUSED = 0;
+const ST_RUNNING = 1;
+
+Memory.supervisors = Memory.supervisors || {};
+// Memory.supervisor = Memory.supervisor || {};
+// Memory.supervisor.tasks = Memory.supervisor.tasks || {};
+// Memory.supervisor.workers = Memory.supervisor.workers || {};
 
 
 const cleanupTerminatedTasks = (tasks, workers) => {
@@ -34,32 +38,53 @@ const cleanupDeadWorkers = (tasks, workers) => {
 }
 
 
+const initMemory = (roomName) => {
+    Memory.supervisors[roomName] = {
+        tasks: {},
+        workers: {},
+        state: ST_RUNNING
+    };
+    return Memory.supervisors[roomName];
+}
+
+
 module.exports = class {
 
     constructor(roomName) {
-        this.workers = new Workers(Game.creeps, Memory.supervisor.workers);
-        this.tasks = new Tasks(Game.rooms[roomName], Memory.supervisor.tasks);
+        this.memory = Memory.supervisors[roomName] || initMemory(roomName);
+        this.workers = new Workers(Game.creeps, this.memory.workers);
+        this.tasks = new Tasks(Game.rooms[roomName], this.memory.tasks);
         this.strategy = new Strategy(Game.rooms[roomName]);
     }
 
     update() {
         console.log('**');
-        console.log('** Supervisor Running');
 
-        // let work = tasks.analyze();
-        // unassign work.terminated
-        // assign work.pending if necessary
-        // update workers
+        if (this.memory.state == ST_RUNNING) {
+            console.log('** Supervisor Running');
 
-        cleanupDeadWorkers(this.tasks, this.workers);
+            cleanupDeadWorkers(this.tasks, this.workers);
 
-        this.strategy.assign(this.tasks, this.workers);
+            this.strategy.assign(this.tasks, this.workers);
+    
+            cleanupTerminatedTasks(this.tasks, this.workers);
+    
+            this.workers.update(this.tasks);
 
-        cleanupTerminatedTasks(this.tasks, this.workers);
+            console.log('** Supervisor done');
+        } else {
+            console.log('** Supervisor paused');
+        }
+    }
 
-        this.workers.update(this.tasks);
 
-        console.log('** Supervisor done');
+    pause() {
+        this.memory.state = ST_PAUSED;
+    }
+
+
+    resume() {
+        this.memory.state = ST_RUNNING;
     }
 
 

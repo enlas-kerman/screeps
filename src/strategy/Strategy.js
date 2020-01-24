@@ -1,10 +1,10 @@
 
-const RepairGoal = require('task_RepairGoal');
-const UpgradeControllerGoal = require('task_UpgradeControllerGoal');
-const SpawnEnergyGoal = require('task_SpawnEnergyGoal');
-const BuildGoal = require('task_BuildGoal');
-const HarvestingGoal = require('task_HarvestingGoal');
-const ExtractionGoal = require('task_ExtractionGoal');
+const RepairGoal = require('goal_RepairGoal');
+const UpgradeControllerGoal = require('goal_UpgradeControllerGoal');
+const SpawnEnergyGoal = require('goal_SpawnEnergyGoal');
+const BuildGoal = require('goal_BuildGoal');
+const HarvestingGoal = require('goal_HarvestingGoal');
+const ExtractionGoal = require('goal_ExtractionGoal');
 const Debug = require('debug');
 
 const MINIMUM_TASK_RANGE = 14;
@@ -67,13 +67,12 @@ module.exports = class {
     assign(tasks, workers) {
 
         let pending = this.plan(tasks, workers);
-        console.log('Number of tasks pending: ' + pending.length);
         if (Debug.isTaskRangeVisible()) {
             this.drawTaskRanges(this.room.visual, pending);
         }
 
         let unassigned = workers.getUnassignedWorkers();
-        console.log("Available workers: " + unassigned.length);
+        console.log('Pending Tasks: ' + pending.length + '  --  Available Workers: ' + unassigned.length);
 
 
         // assign workers to tasks until we run out of workers
