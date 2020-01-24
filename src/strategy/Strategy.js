@@ -1,10 +1,10 @@
 
-const RepairGoal = require('task_RepairGoal');
-const UpgradeControllerGoal = require('task_UpgradeControllerGoal');
-const SpawnEnergyGoal = require('task_SpawnEnergyGoal');
-const BuildGoal = require('task_BuildGoal');
-const HarvestingGoal = require('task_HarvestingGoal');
-const ExtractionGoal = require('task_ExtractionGoal');
+const RepairGoal = require('goal_RepairGoal');
+const UpgradeControllerGoal = require('goal_UpgradeControllerGoal');
+const SpawnEnergyGoal = require('goal_SpawnEnergyGoal');
+const BuildGoal = require('goal_BuildGoal');
+const HarvestingGoal = require('goal_HarvestingGoal');
+const ExtractionGoal = require('goal_ExtractionGoal');
 const Debug = require('debug');
 
 const MINIMUM_TASK_RANGE = 14;
