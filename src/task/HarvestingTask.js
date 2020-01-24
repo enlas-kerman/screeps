@@ -11,6 +11,12 @@ const Task = class {
 
 
     _doInitState(worker) {
+        let creep = worker.getCreep();
+        for (let name in creep.store) {
+            if (name !== RESOURCE_ENERGY) {
+                creep.drop(name);
+            }
+        }
         let data = worker.getTaskData();
         data.state = ST_HARVEST;
     }

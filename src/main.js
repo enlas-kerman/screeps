@@ -1,4 +1,3 @@
-const { Creeps } = require('controller_Creeps');
 const { Towers } = require('controller_Towers');
 const Supervisor = require('supervisor_Supervisor');
 const Debug = require('debug');
@@ -7,9 +6,6 @@ let me = this;
 
 module.exports.loop = () => {
    
-    // let creeps = new Creeps(Game, Memory);
-    // creeps.update();
-    
     let towers = new Towers(Game, Memory);
     towers.update();
 

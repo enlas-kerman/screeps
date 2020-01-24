@@ -12,7 +12,11 @@ const Task = class {
     _doInitState(worker) {
         let data = worker.getTaskData();
         let creep = worker.getCreep();
-        creep.drop(RESOURCE_ENERGY);
+        for (let name in creep.store) {
+            if (name !== this.memory.resourceType) {
+                creep.drop(name);
+            }
+        }
         data.state = ST_EXTRACT;
     }
 

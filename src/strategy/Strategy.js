@@ -41,10 +41,13 @@ module.exports = class {
             if (task.targetId) {
                 let object = Game.getObjectById(task.targetId);
                 if (object.pos) {
+                    let isAssigned = Object.keys(task.assignedWorkers).length > 0;
+                    let fill = isAssigned ? '#20a02020' : '#5050ff20';
+                    let stroke = isAssigned ? '#20a02080' : '#5050ff80';
                     visual.circle(object.pos, {
                         radius: MINIMUM_TASK_RANGE,
-                        stroke: '#4050a0ff',
-                        fill: '#10104030'
+                        stroke: stroke,
+                        fill: fill
                     });
 
                     for (let workerId in task.assignedWorkers) {

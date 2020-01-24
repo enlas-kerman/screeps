@@ -14,6 +14,11 @@ const Task = class {
 
     _doInitState(worker) {
         let creep = worker.getCreep();
+        for (let name in creep.store) {
+            if (name !== RESOURCE_ENERGY) {
+                creep.drop(name);
+            }
+        }
         if (creep.store.getUsedCapacity() > 10) {
             worker.getTaskData().state = ST_REPAIR;
         } else {
