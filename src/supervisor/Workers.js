@@ -1,6 +1,5 @@
 let Worker = require('supervisor_Worker');
 
-const MAX_WORKERS = 11;
 
 
 if (typeof Memory.nextWorkerId === 'undefined') {
@@ -11,9 +10,10 @@ if (typeof Memory.nextWorkerId === 'undefined') {
 
 module.exports = class {
 
-    constructor(creeps, workers) {
+    constructor(creeps, workers, maxWorkers) {
         this.creeps = creeps;
         this.workers = workers;
+        this.maxWorkers = maxWorkers;
         this.deadWorkers = [];
 
         for (let workerId in workers) {
@@ -108,7 +108,7 @@ module.exports = class {
             }
         });
 
-        if (this.getWorkerCount() < MAX_WORKERS) {
+        if (this.getWorkerCount() < this.maxWorkers) {
             this.spawn();
         }
     }

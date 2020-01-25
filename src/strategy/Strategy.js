@@ -52,8 +52,9 @@ module.exports = class {
 
                     for (let workerId in task.assignedWorkers) {
                         let creep = Game.creeps[workerId];
+                        let color = object.room == creep.room ? '#e06060ff' : '#ffffff30';
                         visual.line(object.pos, creep.pos, {
-                            color: '#e06060ff',
+                            color: color,
                             lineStyle: 'dashed',
                             width: 0.2
                         });
@@ -65,6 +66,7 @@ module.exports = class {
 
 
     assign(tasks, workers) {
+        let isDebugVisible = Debug.isDebugVisible();
 
         let pending = this.plan(tasks, workers);
         if (Debug.isTaskRangeVisible()) {
@@ -72,7 +74,7 @@ module.exports = class {
         }
 
         let unassigned = workers.getUnassignedWorkers();
-        console.log('Pending Tasks: ' + pending.length + '  --  Available Workers: ' + unassigned.length);
+        isDebugVisible && console.log('Pending Tasks: ' + pending.length + '  --  Available Workers: ' + unassigned.length);
 
 
         // assign workers to tasks until we run out of workers
@@ -80,7 +82,7 @@ module.exports = class {
             let task = pending[i];
             while (Object.keys(task.assignedWorkers).length < task.minWorkers && unassigned.length > 0) {
                 let worker = unassigned.shift();
-                console.log('  assigning ' + worker.id + ' to task ' + task.id);
+                isDebugVisible && console.log('  assigning ' + worker.id + ' to task ' + task.id);
                 task.assignedWorkers[worker.id] = worker.id;
                 workers.assign(worker.id, task.id);
             }
@@ -121,7 +123,7 @@ module.exports = class {
                             }
                             
                             if (targetInRange) {
-                                console.log('>>>>>>>>> reassigning worker ' + reassignedWorkerId + ' from lower priority task ' + otherTask.id);
+                                isDebugVisible && console.log('>>>>>>>>> reassigning worker ' + reassignedWorkerId + ' from lower priority task ' + otherTask.id);
                                 
                                 // unassign
                                 workers.unassign(reassignedWorkerId);
