@@ -10,7 +10,7 @@ const getMaxWorkers = (roomName) => {
     if (roomName == 'W11N45') {
         return MAX_WORKERS;
     }
-    return 4;
+    return 6;
 }
 
 
@@ -37,9 +37,13 @@ module.exports.loop = () => {
 }
 
 
-me.purge = () => {
-    for (let name in me.supervisors) {
-        me.supervisors[name].purge();
+me.purge = (roomName) => {
+    if (roomName) {
+        me.supervisors[roomName].purge();
+    } else {
+        for (let name in me.supervisors) {
+            me.supervisors[name].purge();
+        }
     }
 }
 

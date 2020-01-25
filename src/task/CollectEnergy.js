@@ -24,7 +24,11 @@ const findBestEnergySource = (room, worker) => {
 
     let minCost = 1000000;
     let minCostSource = null;
-    room.find(FIND_SOURCES).forEach((source) => {
+    room.find(FIND_SOURCES, {
+        filter: (s) => {
+            return s.energy > 0;
+        }
+    }).forEach((source) => {
         let ret = PathFinder.search(creep.pos, [{ pos: source.pos, range: 1}], {
             plainCost: 1,
             swampCost: 5,
@@ -43,41 +47,78 @@ const findBestEnergySource = (room, worker) => {
 
 /**
  * return true if the worker has completed collection
+ * 
+ * if !data.target 
+ *     data.target = findBestEnergySource
+ * else
+ *     if (data.target is a source)
+ *         if (data.target is empty)
+ *             data.target = null
+ *         else
+ *             harvest/move
+ *     else
+ *         if (data.target is empty)
+ *             data.target = null
+ *         else
+ *             withdraw/move
+ * 
  */
+const MAX_RETRIES = 5;
+
 const doCollectEnergy = (worker) => {
     let creep = worker.getCreep();
     let data = worker.getTaskData();
     if (creep.store.getFreeCapacity() > 0) {
-        let source = findBestEnergySource(creep.room, worker);
-        if (source) {
-            if (source.structureType) {
-                if (creep.withdraw(source, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(source);
+
+        if (data.targetId && data.noPathRetries < MAX_RETRIES) {
+            let targetId = data.targetId;
+            let target = Game.getObjectById(targetId);
+            if (target) {
+                if (target.structureType) {
+                    if (target.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                        if (creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            if (creep.moveTo(target) == ERR_NO_PATH) {
+                                data.noPathRetries++;
+                            } else {
+                                data.noPathRetries = 0;
+                            }
+                        }
+                    } else {
+                        // container is empty
+                        data.targetId = null;
+                    }
+                } else {
+                    if (target.energy > 0) {
+                        if (creep.harvest(target) == ERR_NOT_IN_RANGE) {
+                            if (creep.moveTo(target) == ERR_NO_PATH) {
+                                data.noPathRetries++;
+                            } else {
+                                data.noPathRetries = 0;
+                            }
+                        }
+                    } else {
+                        // source is empty
+                        data.targetId = null;
+                    }
                 }
             } else {
-                let err = creep.harvest(source);
-                if (err == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(source);
-                } else
-                if (err == OK) {
-                    data.useContainer = false;
-                }
+                // target is gone
+                data.targetId = null;
+            }
+        } else {
+            let target = findBestEnergySource(creep.room, worker);
+            if (target) {
+                data.targetId = target.id;
+                data.noPathRetries = 0;
             }
         }
         return false;
-    } else {
-        return true;
-        //data.state = ST_UPGRADE;
     }
-}
-
-
-const resetEnergyAffinity = (worker) => {
-    worker.getTaskData().useContainer = true;
+    data.targetId = null;
+    return true;
 }
 
 
 module.exports = {
-    doCollectEnergy: doCollectEnergy,
-    resetEnergyAffinity: resetEnergyAffinity
+    doCollectEnergy: doCollectEnergy
 }

@@ -10,7 +10,8 @@ if (typeof Memory.nextWorkerId === 'undefined') {
 
 module.exports = class {
 
-    constructor(creeps, workers, maxWorkers) {
+    constructor(roomName, creeps, workers, maxWorkers) {
+        this.roomName = roomName;
         this.creeps = creeps;
         this.workers = workers;
         this.maxWorkers = maxWorkers;
@@ -71,7 +72,13 @@ module.exports = class {
 
 
     spawn(genetics) {
-        let spawn = Game.spawns['MARA'];
+        let room = Game.rooms[this.roomName];
+        let spawns = room.find(FIND_MY_SPAWNS);
+        if (spawns.length == 0) {
+            spawns = [Game.spawns['MARA']];
+        }
+
+        let spawn = spawns[0];
         let workerId = '|' + Memory.nextWorkerId + '|';
         let err = spawn.spawnCreep([WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE], workerId, {
             memory: {

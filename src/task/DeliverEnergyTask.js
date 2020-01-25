@@ -1,4 +1,4 @@
-let { doCollectEnergy, resetEnergyAffinity } = require('task_CollectEnergy');
+let { doCollectEnergy } = require('task_CollectEnergy');
 
 
 const ST_INIT = 0;
@@ -25,7 +25,6 @@ const Task = class {
             worker.getTaskData().state = ST_DELIVER;
         } else {
             worker.getTaskData().state = ST_COLLECT_ENERGY;
-            resetEnergyAffinity(worker);
         }
     }
 
@@ -40,7 +39,6 @@ const Task = class {
     _doDeliverState(worker) {
         let creep = worker.getCreep();
         if (creep.store.getUsedCapacity() == 0) {
-            resetEnergyAffinity(worker);
             worker.getTaskData().state = ST_COLLECT_ENERGY;
             return;
         }
