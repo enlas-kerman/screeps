@@ -1,5 +1,5 @@
-const { Towers } = require('controller_Towers');
 const Supervisor = require('supervisor_Supervisor');
+const Tower = require('controller_Tower');
 const Debug = require('debug');
 
 let me = this;
@@ -10,26 +10,27 @@ const getMaxWorkers = (roomName) => {
     if (roomName == 'W11N45') {
         return MAX_WORKERS;
     }
-    return 7;
+    return 8;
 }
 
 
 module.exports.loop = () => {
    
-    let towers = new Towers(Game, Memory);
-    towers.update();
-
     let supervisors = {};
+    let towers = {};
     for (let roomName in Game.rooms) {
         if (Game.rooms[roomName].controller.my) {
             supervisors[roomName] = new Supervisor(roomName, getMaxWorkers(roomName));
+            towers[roomName] = new Tower(roomName);
         }
     }
-
 
     for (let roomName in supervisors) {
         let supervisor = supervisors[roomName];
         supervisor.update();
+
+        let tower = towers[roomName];
+        tower.update();
     }
 
     me.supervisor = supervisors['W11N45'];
