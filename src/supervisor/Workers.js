@@ -74,7 +74,7 @@ module.exports = class {
     spawn(genetics) {
         let room = Game.rooms[this.roomName];
         let spawns = room.find(FIND_MY_SPAWNS);
-        if (spawns.length == 0) {
+        if (room.energyCapacityAvailable < 850 || spawns.length == 0) {
             spawns = [Game.spawns['MARA']];
         }
 
@@ -91,6 +91,8 @@ module.exports = class {
                 assignedTaskId: null
             };
             Memory.nextWorkerId++;
+        } else {
+            console.log('Spawn ' + spawn.id + ' error: ' + err);
         }
     }
 

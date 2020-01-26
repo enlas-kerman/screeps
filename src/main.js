@@ -10,7 +10,7 @@ const getMaxWorkers = (roomName) => {
     if (roomName == 'W11N45') {
         return MAX_WORKERS;
     }
-    return 6;
+    return 7;
 }
 
 

@@ -4,16 +4,14 @@ const findBestEnergySource = (room, worker) => {
 
     let creep = worker.getCreep();
 
-    if (worker.getTaskData().useContainer) {
-        let containers = room.find(FIND_STRUCTURES, {
-            filter: (s) => {
-                return (s.structureType == STRUCTURE_CONTAINER) && (s.store.getUsedCapacity(RESOURCE_ENERGY) >= creep.store.getFreeCapacity());
-            }
-        });
-
-        if (containers.length > 0) {
-            return containers[0];
+    let containers = room.find(FIND_STRUCTURES, {
+        filter: (s) => {
+            return (s.structureType == STRUCTURE_CONTAINER) && (s.store.getUsedCapacity(RESOURCE_ENERGY) >= creep.store.getFreeCapacity());
         }
+    });
+
+    if (containers.length > 0) {
+        return containers[0];
     }
 
 
@@ -41,7 +39,7 @@ const findBestEnergySource = (room, worker) => {
             minCostSource = source;
         }
     });
-
+    //console.log(worker.getId() + '--->' + minCost);
     return minCostSource;
 };
 
@@ -76,11 +74,16 @@ const doCollectEnergy = (worker) => {
             if (target) {
                 if (target.structureType) {
                     if (target.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
-                        if (creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        let err = creep.withdraw(target, RESOURCE_ENERGY);
+                        if (err == ERR_NOT_IN_RANGE) {
                             if (creep.moveTo(target) == ERR_NO_PATH) {
                                 data.noPathRetries++;
                             } else {
                                 data.noPathRetries = 0;
+                            }
+                        } else {
+                            if (err == ERR_NOT_ENOUGH_RESOURCES) {
+                                data.targetId = null;
                             }
                         }
                     } else {
@@ -106,10 +109,11 @@ const doCollectEnergy = (worker) => {
                 data.targetId = null;
             }
         } else {
+            data.targetId = null;
+            data.noPathRetries = 0;
             let target = findBestEnergySource(creep.room, worker);
             if (target) {
                 data.targetId = target.id;
-                data.noPathRetries = 0;
             }
         }
         return false;
