@@ -44,7 +44,7 @@ const Goal = class {
                     goal: this.goalId,
                     targetId: target.id,
                     score: 15,
-                    minWorkers: target.structureType === STRUCTURE_SPAWN ? 4 : 1,
+                    minWorkers: target.structureType === STRUCTURE_SPAWN ? 2 : 1,
                     maxWorkers: target.structureType === STRUCTURE_SPAWN ? 6 : 1,
                     assignedWorkers: {}
                 });

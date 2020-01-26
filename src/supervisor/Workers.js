@@ -1,6 +1,5 @@
 let Worker = require('supervisor_Worker');
 
-const MAX_WORKERS = 11;
 
 
 if (typeof Memory.nextWorkerId === 'undefined') {
@@ -11,9 +10,11 @@ if (typeof Memory.nextWorkerId === 'undefined') {
 
 module.exports = class {
 
-    constructor(creeps, workers) {
+    constructor(roomName, creeps, workers, maxWorkers) {
+        this.roomName = roomName;
         this.creeps = creeps;
         this.workers = workers;
+        this.maxWorkers = maxWorkers;
         this.deadWorkers = [];
 
         for (let workerId in workers) {
@@ -71,7 +72,13 @@ module.exports = class {
 
 
     spawn(genetics) {
-        let spawn = Game.spawns['MARA'];
+        let room = Game.rooms[this.roomName];
+        let spawns = room.find(FIND_MY_SPAWNS);
+        if (room.energyCapacityAvailable < 850 || spawns.length == 0) {
+            spawns = [Game.spawns['MARA']];
+        }
+
+        let spawn = spawns[0];
         let workerId = '|' + Memory.nextWorkerId + '|';
         let err = spawn.spawnCreep([WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE], workerId, {
             memory: {
@@ -84,6 +91,8 @@ module.exports = class {
                 assignedTaskId: null
             };
             Memory.nextWorkerId++;
+        } else {
+            console.log('Spawn ' + spawn.id + ' error: ' + err);
         }
     }
 
@@ -108,7 +117,7 @@ module.exports = class {
             }
         });
 
-        if (this.getWorkerCount() < MAX_WORKERS) {
+        if (this.getWorkerCount() < this.maxWorkers) {
             this.spawn();
         }
     }

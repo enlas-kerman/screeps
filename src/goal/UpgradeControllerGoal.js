@@ -20,8 +20,12 @@ const Goal = class {
             maxWorkers: 100
         });
 
-        if (room.controller.ticksToDowngrade < 10000) {
+        if (room.controller.ticksToDowngrade < 2000) {
             task.score = 100;
+        } else {
+            if (room.controller.ticksToDowngrade > 3000) {
+                task.score = 1;
+            }
         }
 
     }

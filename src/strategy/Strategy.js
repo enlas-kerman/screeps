@@ -52,8 +52,9 @@ module.exports = class {
 
                     for (let workerId in task.assignedWorkers) {
                         let creep = Game.creeps[workerId];
+                        let color = object.room == creep.room ? '#e06060ff' : '#ffffff30';
                         visual.line(object.pos, creep.pos, {
-                            color: '#e06060ff',
+                            color: color,
                             lineStyle: 'dashed',
                             width: 0.2
                         });
@@ -65,6 +66,7 @@ module.exports = class {
 
 
     assign(tasks, workers) {
+        let isDebugVisible = Debug.isDebugVisible();
 
         let pending = this.plan(tasks, workers);
         if (Debug.isTaskRangeVisible()) {
@@ -72,7 +74,7 @@ module.exports = class {
         }
 
         let unassigned = workers.getUnassignedWorkers();
-        console.log('Pending Tasks: ' + pending.length + '  --  Available Workers: ' + unassigned.length);
+        isDebugVisible && console.log('Pending Tasks: ' + pending.length + '  --  Available Workers: ' + unassigned.length);
 
 
         // assign workers to tasks until we run out of workers
@@ -80,7 +82,7 @@ module.exports = class {
             let task = pending[i];
             while (Object.keys(task.assignedWorkers).length < task.minWorkers && unassigned.length > 0) {
                 let worker = unassigned.shift();
-                console.log('  assigning ' + worker.id + ' to task ' + task.id);
+                isDebugVisible && console.log('  assigning ' + worker.id + ' to task ' + task.id);
                 task.assignedWorkers[worker.id] = worker.id;
                 workers.assign(worker.id, task.id);
             }
@@ -101,42 +103,29 @@ module.exports = class {
                         //console.log('[' + task.id + '] no available workers found in lower priority tasks');
                         break;
                     }
-
                     let otherTaskWorkers = Object.values(otherTask.assignedWorkers);
-                    if (otherTaskWorkers.length > 0) {
-                        let reassignedWorkerId = otherTaskWorkers[0];
-                        let reassignedCreep = Game.creeps[reassignedWorkerId];
-                        if (reassignedCreep) {
-                            
-                            let targetInRange = true;
-                            let taskTargetId = task.targetId;
-                            if (taskTargetId) {
-                                let taskTarget = Game.getObjectById(taskTargetId);
-                                if (taskTarget) {
-                                    let range = taskTarget.pos.getRangeTo(reassignedCreep);
-                                    if (range > MINIMUM_TASK_RANGE) {
-                                        targetInRange = false;
-                                    }
-                                }
-                            }
-                            
-                            if (targetInRange) {
-                                console.log('>>>>>>>>> reassigning worker ' + reassignedWorkerId + ' from lower priority task ' + otherTask.id);
-                                
-                                // unassign
-                                workers.unassign(reassignedWorkerId);
-                                delete otherTask.assignedWorkers[reassignedWorkerId];
+                    for (let k=0; k < otherTaskWorkers.length && Object.keys(task.assignedWorkers).length < task.minWorkers; k++) {
+                        let otherTaskWorker = otherTaskWorkers[k];
+                        let otherTaskCreep = Game.creeps[otherTaskWorker];
+                        if (otherTaskCreep && task.targetId) {
+                            let taskTarget = Game.getObjectById(task.targetId);
+                            if (taskTarget) {
+                                let range = taskTarget.pos.getRangeTo(otherTaskCreep);
+                                if (range < MINIMUM_TASK_RANGE) {
+                                    isDebugVisible && console.log('>>>>>>>>> reassigning worker ' + otherTaskWorker + ' from lower priority task ' + otherTask.id);
 
-                                // assign
-                                task.assignedWorkers[reassignedWorkerId] = reassignedWorkerId;
-                                workers.assign(reassignedWorkerId, task.id);
-                            }
+                                    // unassign
+                                    workers.unassign(otherTaskWorker);
+                                    delete otherTask.assignedWorkers[otherTaskWorker];
+    
+                                    // assign
+                                    task.assignedWorkers[otherTaskWorker] = otherTaskWorker;
+                                    workers.assign(otherTaskWorker, task.id); 
+                                }
+                            }                                
                         }
                     }
 
-                    if (Object.keys(task.assignedWorkers).length >= task.minWorkers) {
-                        break;
-                    }
                 }
 
             }

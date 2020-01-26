@@ -1,15 +1,12 @@
 let Workers = require('supervisor_Workers');
 let Tasks = require('supervisor_Tasks');
 let Strategy = require('strategy_Strategy');
-
+let Debug = require('debug');
 
 const ST_PAUSED = 0;
 const ST_RUNNING = 1;
 
 Memory.supervisors = Memory.supervisors || {};
-// Memory.supervisor = Memory.supervisor || {};
-// Memory.supervisor.tasks = Memory.supervisor.tasks || {};
-// Memory.supervisor.workers = Memory.supervisor.workers || {};
 
 
 const cleanupTerminatedTasks = (tasks, workers) => {
@@ -48,20 +45,25 @@ const initMemory = (roomName) => {
 }
 
 
+
+
 module.exports = class {
 
-    constructor(roomName) {
+    constructor(roomName, maxWorkers) {
+        this.roomName = roomName;
+        this.maxWorkers = maxWorkers;
         this.memory = Memory.supervisors[roomName] || initMemory(roomName);
-        this.workers = new Workers(Game.creeps, this.memory.workers);
+        this.workers = new Workers(roomName, Game.creeps, this.memory.workers, maxWorkers);
         this.tasks = new Tasks(Game.rooms[roomName], this.memory.tasks);
         this.strategy = new Strategy(Game.rooms[roomName]);
     }
 
     update() {
-        console.log('**');
+        let isDebugVisible = Debug.isDebugVisible();
+        isDebugVisible && console.log('**');
 
         if (this.memory.state == ST_RUNNING) {
-            console.log('** Supervisor Running');
+            isDebugVisible && console.log('** Supervisor Running [' + this.roomName + ']');
 
             cleanupDeadWorkers(this.tasks, this.workers);
 
@@ -71,9 +73,9 @@ module.exports = class {
     
             this.workers.update(this.tasks);
 
-            console.log('** Supervisor done');
+            isDebugVisible && console.log('** Supervisor done [' + this.roomName + ']');
         } else {
-            console.log('** Supervisor paused');
+            console.log('** Supervisor paused [' + this.roomName + ']');
         }
     }
 
