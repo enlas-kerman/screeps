@@ -5,7 +5,7 @@ const findSpawnsAndExtsNeedingEnergy = (room) => {
     return room.find(FIND_STRUCTURES, {
         filter: (s) => {
             return ((s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION) && (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0))
-                || ((s.structureType == STRUCTURE_TOWER) && (s.store.getFreeCapacity(RESOURCE_ENERGY) > s.store.getCapacity(RESOURCE_ENERGY) * 0.50));
+                || ((s.structureType == STRUCTURE_TOWER) && (s.store.getFreeCapacity(RESOURCE_ENERGY) > s.store.getCapacity(RESOURCE_ENERGY) * 0.25));
         }
     });
 }
@@ -44,7 +44,7 @@ const Goal = class {
                     goal: this.goalId,
                     targetId: target.id,
                     score: 15,
-                    minWorkers: target.structureType === STRUCTURE_SPAWN ? 2 : 1,
+                    minWorkers: target.structureType === STRUCTURE_SPAWN || target.structureType === STRUCTURE_TOWER ? 2 : 1,
                     maxWorkers: target.structureType === STRUCTURE_SPAWN ? 6 : 1,
                     assignedWorkers: {}
                 });

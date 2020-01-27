@@ -1,17 +1,54 @@
 
+const closestContainer = (worker, containers) => {
+    let creep = worker.getCreep();
+    let minRange = 1000000;
+    let minContainer = null;
+    for (var i=0; i < containers.length; i++) {
+        let container = containers[i];
+        let range = creep.pos.getRangeTo(container);
+        if (range <= minRange) {
+            minRange = range;
+            minContainer = container;
+        }
+    }
+    return minContainer;
+}
+
+
+const MAX_RANGE_FREE_ENERGY = 15;
 
 const findBestEnergySource = (room, worker) => {
 
     let creep = worker.getCreep();
 
+    // tombstones first
+    let tombstones = room.find(FIND_TOMBSTONES, {
+        filter: (tombstone) => {
+            return creep.pos.getRangeTo(tombstone) < MAX_RANGE_FREE_ENERGY && tombstone.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
+        }
+    });
+    if (tombstones.length > 0) {
+        return tombstones[0];
+    }
+
+    // dropped resources
+    let resources = room.find(FIND_DROPPED_RESOURCES, {
+        filter: (resource) => {
+            return creep.pos.getRangeTo(resource) < MAX_RANGE_FREE_ENERGY && resource.resourceType == RESOURCE_ENERGY && resource.amount > 0;
+        }
+    });
+    if (resources.length > 0) {
+        return resources[0];
+    }
+
+    // containers next
     let containers = room.find(FIND_STRUCTURES, {
         filter: (s) => {
             return (s.structureType == STRUCTURE_CONTAINER) && (s.store.getUsedCapacity(RESOURCE_ENERGY) >= creep.store.getFreeCapacity());
         }
     });
-
     if (containers.length > 0) {
-        return containers[0];
+        return closestContainer(worker, containers);
     }
 
 
@@ -72,7 +109,9 @@ const doCollectEnergy = (worker) => {
             let targetId = data.targetId;
             let target = Game.getObjectById(targetId);
             if (target) {
-                if (target.structureType) {
+
+                // target is a container or a tombstone
+                if (target.store) {
                     if (target.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                         let err = creep.withdraw(target, RESOURCE_ENERGY);
                         if (err == ERR_NOT_IN_RANGE) {
@@ -91,18 +130,38 @@ const doCollectEnergy = (worker) => {
                         data.targetId = null;
                     }
                 } else {
-                    if (target.energy > 0) {
-                        if (creep.harvest(target) == ERR_NOT_IN_RANGE) {
-                            if (creep.moveTo(target) == ERR_NO_PATH) {
-                                data.noPathRetries++;
-                            } else {
-                                data.noPathRetries = 0;
+
+                    if (target.amount) {
+                        // target is a resource node
+                        if (target.amount > 0) {
+                            if (creep.pickup(target) == ERR_NOT_IN_RANGE) {
+                                if (creep.moveTo(target) == ERR_NO_PATH) {
+                                    data.noPathRetries++;
+                                } else {
+                                    data.noPathRetries = 0;
+                                }
                             }
+                        } else {
+                            // resource is empty
+                            data.targetId = null;
                         }
                     } else {
-                        // source is empty
-                        data.targetId = null;
+                        // target is a resource node
+                        if (target.energy > 0) {
+                            if (creep.harvest(target) == ERR_NOT_IN_RANGE) {
+                                if (creep.moveTo(target) == ERR_NO_PATH) {
+                                    data.noPathRetries++;
+                                } else {
+                                    data.noPathRetries = 0;
+                                }
+                            }
+                        } else {
+                            // source is empty
+                            data.targetId = null;
+                        }
                     }
+
+
                 }
             } else {
                 // target is gone

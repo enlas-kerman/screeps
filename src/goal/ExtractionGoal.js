@@ -18,7 +18,8 @@ const Goal = class {
         for (let i=0; i < pendingTasks.length; i++) {
             let task = pendingTasks[i];
             let target = Game.getObjectById(task.targetId);
-            if (target == null || target.store.getFreeCapacity() == 0) {
+            let mineral = Game.getObjectById(task.mineralId);
+            if (target == null || target.store.getFreeCapacity() == 0 || mineral.mineralAmount == 0) {
                 tasks.terminate(task.id);
             }
         }
@@ -28,7 +29,7 @@ const Goal = class {
         for (let i=0; i < containers.length; i++) {
             let container = containers[i];
             let mineral = this.getMineral(container, minerals);
-            if (mineral) {
+            if (mineral && mineral.mineralAmount > 0) {
                 let key = ExtractionTask.TYPE + '-' + container.id;
                 if (!tasks.exists(key) && (container.store.getFreeCapacity() > 200)) {
                     tasks.addTask({
@@ -36,6 +37,7 @@ const Goal = class {
                         type: ExtractionTask.TYPE,
                         goal: this.goalId,
                         targetId: container.id,
+                        mineralId: mineral.id,
                         mineralType: mineral.mineralType,
                         score: 98,
                         minWorkers: 1,
