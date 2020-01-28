@@ -46,7 +46,7 @@ const findBestEnergySource = (room, worker) => {
     // dropped resources
     let resources = room.find(FIND_DROPPED_RESOURCES, {
         filter: (resource) => {
-            return creep.pos.getRangeTo(resource) < MAX_RANGE_FREE_ENERGY && resource.resourceType == RESOURCE_ENERGY && resource.amount > 0;
+            return resource.resourceType == RESOURCE_ENERGY && resource.amount > 0;
         }
     });
     if (resources.length > 0) {
@@ -168,7 +168,8 @@ const doCollectEnergy = (worker) => {
                         // target is a resource node
                         if (target.energy > 0) {
                             if (creep.harvest(target) == ERR_NOT_IN_RANGE) {
-                                if (creep.moveTo(target) == ERR_NO_PATH) {
+                                let err = creep.moveTo(target);
+                                if (err == ERR_NO_PATH) {
                                     data.noPathRetries++;
                                 } else {
                                     data.noPathRetries = 0;
