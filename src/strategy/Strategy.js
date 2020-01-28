@@ -5,6 +5,7 @@ const SpawnEnergyGoal = require('goal_SpawnEnergyGoal');
 const BuildGoal = require('goal_BuildGoal');
 const HarvestingGoal = require('goal_HarvestingGoal');
 const ExtractionGoal = require('goal_ExtractionGoal');
+const InventoryGoal = require('goal_InventoryGoal');
 const Debug = require('debug');
 
 const MINIMUM_TASK_RANGE = 14;
@@ -21,6 +22,7 @@ module.exports = class {
         this.goals['build goal'] = new BuildGoal('BuildGoal-' + room.name);
         this.goals['harvesting'] = new HarvestingGoal('HarvestingGoal-' + room.name);
         this.goals['extraction'] = new ExtractionGoal('ExtractionGoal-' + room.name);
+        this.goals['inventory'] = new InventoryGoal('InventoryGoal-' + room.name);
     }
 
 
@@ -82,7 +84,8 @@ module.exports = class {
         // assign workers to tasks until we run out of workers
         for (let i=0; i < pending.length; i++) {
             let task = pending[i];
-            while (Object.keys(task.assignedWorkers).length < task.minWorkers && unassigned.length > 0) {
+            let numAssignedWorkers = Object.keys(task.assignedWorkers).length;
+            while (numAssignedWorkers < task.minWorkers && unassigned.length > 0) {
                 let worker = unassigned.shift();
                 isDebugVisible && console.log('  assigning ' + worker.id + ' to task ' + task.id);
                 task.assignedWorkers[worker.id] = worker.id;

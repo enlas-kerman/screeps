@@ -4,13 +4,13 @@ const Debug = require('debug');
 
 let me = this;
 
-const MAX_WORKERS = 11;
+const MAX_WORKERS = 10;
 
 const getMaxWorkers = (roomName) => {
     if (roomName == 'W11N45') {
         return MAX_WORKERS;
     }
-    return 11;
+    return 10;
 }
 
 

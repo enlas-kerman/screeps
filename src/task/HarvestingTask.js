@@ -37,8 +37,15 @@ const Task = class {
             if (creep.store.getFreeCapacity() == 0) {
                 creep.transfer(container, RESOURCE_ENERGY);
             } else {
-                let source = creep.pos.findClosestByRange(FIND_SOURCES);
-                creep.harvest(source);
+                let data = worker.getTaskData();
+                if (!data.sourceId) {
+                    let closest = creep.pos.findClosestByRange(FIND_SOURCES);
+                    data.sourceId = closest.id;
+                }
+                let source = Game.getObjectById(data.sourceId);
+                if (creep.harvest(source) !== OK) {
+                    data.sourceId = null;
+                }
             }
         }
     }

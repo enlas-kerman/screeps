@@ -71,11 +71,6 @@ const findBestEnergySource = (room, worker) => {
     }
 
 
-    let costs = new PathFinder.CostMatrix;
-    room.find(FIND_CREEPS).forEach((creep) => {
-        costs.set(creep.pos.x, creep.pos.y, 0xff);
-    });
-
     let minCost = 1000000;
     let minCostSource = null;
     room.find(FIND_SOURCES, {
@@ -85,10 +80,7 @@ const findBestEnergySource = (room, worker) => {
     }).forEach((source) => {
         let ret = PathFinder.search(creep.pos, [{ pos: source.pos, range: 1}], {
             plainCost: 1,
-            swampCost: 5,
-            roomCallback: () => {
-                return costs;
-            }
+            swampCost: 5
         });
         if (!ret.incomplete && ret.cost <= minCost) {
             minCost = ret.cost;

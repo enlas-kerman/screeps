@@ -73,13 +73,13 @@ module.exports = class {
     spawn(genetics) {
         let room = Game.rooms[this.roomName];
         let spawns = room.find(FIND_MY_SPAWNS);
-        if (room.energyCapacityAvailable < 850 || spawns.length == 0) {
+        if (room.energyCapacityAvailable < 1000 || spawns.length == 0) {
             spawns = [Game.spawns['MARA']];
         }
 
         let spawn = spawns[0];
         let workerId = '|' + Memory.nextWorkerId + '|';
-        let err = spawn.spawnCreep([WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE], workerId, {
+        let err = spawn.spawnCreep([WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE], workerId, {
             memory: {
                 role: 'worker'
             }
