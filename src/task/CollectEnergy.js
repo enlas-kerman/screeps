@@ -1,21 +1,29 @@
 
-const closestContainer = (worker, containers) => {
+
+const MAX_PATH_COST = 25;
+
+const findCheapestPath = (worker, targets) => {
     let creep = worker.getCreep();
-    let minRange = 1000000;
-    let minContainer = null;
-    for (var i=0; i < containers.length; i++) {
-        let container = containers[i];
-        let range = creep.pos.getRangeTo(container);
-        if (range <= minRange) {
-            minRange = range;
-            minContainer = container;
+    let lowestCost = 10000000;
+    let lowestCostTarget = null;
+    targets.forEach((target) => {
+        const ret = PathFinder.search(creep.pos, target.pos, {
+            plainCost: 1,
+            swampCost: 5
+        });
+        if (ret.cost < lowestCost) {
+            lowestCost = ret.cost;
+            lowestCostTarget = target;
+        }
+    });
+    if (lowestCostTarget) {
+        return {
+            target: lowestCostTarget,
+            cost: lowestCost
         }
     }
-    return minContainer;
 }
 
-
-const MAX_RANGE_FREE_ENERGY = 15;
 
 const findBestEnergySource = (room, worker) => {
 
@@ -24,12 +32,16 @@ const findBestEnergySource = (room, worker) => {
     // tombstones first
     let tombstones = room.find(FIND_TOMBSTONES, {
         filter: (tombstone) => {
-            return creep.pos.getRangeTo(tombstone) < MAX_RANGE_FREE_ENERGY && tombstone.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
+            return tombstone.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
         }
     });
     if (tombstones.length > 0) {
-        return tombstones[0];
+        let cheapest = findCheapestPath(worker, tombstones);
+        if (cheapest && cheapest.cost < MAX_PATH_COST) {
+            return cheapest.target;
+        }
     }
+
 
     // dropped resources
     let resources = room.find(FIND_DROPPED_RESOURCES, {
@@ -38,8 +50,12 @@ const findBestEnergySource = (room, worker) => {
         }
     });
     if (resources.length > 0) {
-        return resources[0];
+        let cheapest = findCheapestPath(worker, resources);
+        if (cheapest && cheapest.cost < MAX_PATH_COST) {
+            return cheapest.target;
+        }
     }
+
 
     // containers next
     let containers = room.find(FIND_STRUCTURES, {
@@ -48,7 +64,10 @@ const findBestEnergySource = (room, worker) => {
         }
     });
     if (containers.length > 0) {
-        return closestContainer(worker, containers);
+        let cheapest = findCheapestPath(worker, containers);
+        if (cheapest) {
+            return cheapest.target;
+        }
     }
 
 
