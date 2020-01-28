@@ -10,7 +10,7 @@ const getMaxWorkers = (roomName) => {
     if (roomName == 'W11N45') {
         return MAX_WORKERS;
     }
-    return 8;
+    return 11;
 }
 
 
@@ -19,7 +19,7 @@ module.exports.loop = () => {
     let supervisors = {};
     let towers = {};
     for (let roomName in Game.rooms) {
-        if (Game.rooms[roomName].controller.my) {
+        if (Game.rooms[roomName].controller && Game.rooms[roomName].controller.my) {
             supervisors[roomName] = new Supervisor(roomName, getMaxWorkers(roomName));
             towers[roomName] = new Tower(roomName);
         }

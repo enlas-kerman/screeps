@@ -52,12 +52,14 @@ module.exports = class {
 
                     for (let workerId in task.assignedWorkers) {
                         let creep = Game.creeps[workerId];
-                        let color = object.room == creep.room ? '#e06060ff' : '#ffffff30';
-                        visual.line(object.pos, creep.pos, {
-                            color: color,
-                            lineStyle: 'dashed',
-                            width: 0.2
-                        });
+                        if (creep && object) {
+                            let color = object.room == creep.room ? '#e06060ff' : '#ffffff30';
+                            visual.line(object.pos, creep.pos, {
+                                color: color,
+                                lineStyle: 'dashed',
+                                width: 0.2
+                            });
+                        }
                     }
                 }
             }

@@ -5,7 +5,7 @@ const BuildTask = require('task_BuildTask');
 const HarvestingTask = require('task_HarvestingTask');
 const ExtractionTask = require('task_ExtractionTask');
 const DeliverTask = require('task_DeliverTask');
-
+const Debug = require('debug');
 
 /**
  * Task flyweights.  Defined module-scope to avoid rebuilding them every tic
@@ -45,7 +45,8 @@ const Tasks = class {
 
 
     addTask(taskInfo) {
-        console.log('adding task with id ' + taskInfo.id + ' and type ' + taskInfo.type);
+        let isDebugVisible = Debug.isDebugVisible();
+        isDebugVisible && console.log('adding task with id ' + taskInfo.id + ' and type ' + taskInfo.type);
         if (typeof(taskInfo.score) == 'undefined') {
             taskInfo.score = 0;
         }
@@ -67,7 +68,8 @@ const Tasks = class {
 
 
     removeTask(taskId) {
-        console.log('removeTask: ' + taskId);
+        let isDebugVisible = Debug.isDebugVisible();
+        isDebugVisible && console.log('removeTask: ' + taskId);
         if (this.memory.index[taskId]) {
             let type = this.memory.index[taskId].type;
             delete this.memory.index[taskId];
@@ -84,7 +86,8 @@ const Tasks = class {
 
 
     terminate(taskId) {
-        console.log("terminate: " + taskId);
+        let isDebugVisible = Debug.isDebugVisible();
+        isDebugVisible && console.log("terminate: " + taskId);
         if (this.memory.index[taskId]) {
             let task = this.memory.index[taskId];
             this.memory.terminated[taskId] = task;

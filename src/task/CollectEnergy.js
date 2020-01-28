@@ -1,17 +1,73 @@
 
 
+const MAX_PATH_COST = 25;
+
+const findCheapestPath = (worker, targets) => {
+    let creep = worker.getCreep();
+    let lowestCost = 10000000;
+    let lowestCostTarget = null;
+    targets.forEach((target) => {
+        const ret = PathFinder.search(creep.pos, target.pos, {
+            plainCost: 1,
+            swampCost: 5
+        });
+        if (ret.cost < lowestCost) {
+            lowestCost = ret.cost;
+            lowestCostTarget = target;
+        }
+    });
+    if (lowestCostTarget) {
+        return {
+            target: lowestCostTarget,
+            cost: lowestCost
+        }
+    }
+}
+
+
 const findBestEnergySource = (room, worker) => {
 
     let creep = worker.getCreep();
 
+    // tombstones first
+    let tombstones = room.find(FIND_TOMBSTONES, {
+        filter: (tombstone) => {
+            return tombstone.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
+        }
+    });
+    if (tombstones.length > 0) {
+        let cheapest = findCheapestPath(worker, tombstones);
+        if (cheapest && cheapest.cost < MAX_PATH_COST) {
+            return cheapest.target;
+        }
+    }
+
+
+    // dropped resources
+    let resources = room.find(FIND_DROPPED_RESOURCES, {
+        filter: (resource) => {
+            return resource.resourceType == RESOURCE_ENERGY && resource.amount > 0;
+        }
+    });
+    if (resources.length > 0) {
+        let cheapest = findCheapestPath(worker, resources);
+        if (cheapest && cheapest.cost < MAX_PATH_COST) {
+            return cheapest.target;
+        }
+    }
+
+
+    // containers next
     let containers = room.find(FIND_STRUCTURES, {
         filter: (s) => {
             return (s.structureType == STRUCTURE_CONTAINER) && (s.store.getUsedCapacity(RESOURCE_ENERGY) >= creep.store.getFreeCapacity());
         }
     });
-
     if (containers.length > 0) {
-        return containers[0];
+        let cheapest = findCheapestPath(worker, containers);
+        if (cheapest) {
+            return cheapest.target;
+        }
     }
 
 
@@ -72,7 +128,9 @@ const doCollectEnergy = (worker) => {
             let targetId = data.targetId;
             let target = Game.getObjectById(targetId);
             if (target) {
-                if (target.structureType) {
+
+                // target is a container or a tombstone
+                if (target.store) {
                     if (target.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                         let err = creep.withdraw(target, RESOURCE_ENERGY);
                         if (err == ERR_NOT_IN_RANGE) {
@@ -91,18 +149,39 @@ const doCollectEnergy = (worker) => {
                         data.targetId = null;
                     }
                 } else {
-                    if (target.energy > 0) {
-                        if (creep.harvest(target) == ERR_NOT_IN_RANGE) {
-                            if (creep.moveTo(target) == ERR_NO_PATH) {
-                                data.noPathRetries++;
-                            } else {
-                                data.noPathRetries = 0;
+
+                    if (target.amount) {
+                        // target is a resource node
+                        if (target.amount > 0) {
+                            if (creep.pickup(target) == ERR_NOT_IN_RANGE) {
+                                if (creep.moveTo(target) == ERR_NO_PATH) {
+                                    data.noPathRetries++;
+                                } else {
+                                    data.noPathRetries = 0;
+                                }
                             }
+                        } else {
+                            // resource is empty
+                            data.targetId = null;
                         }
                     } else {
-                        // source is empty
-                        data.targetId = null;
+                        // target is a resource node
+                        if (target.energy > 0) {
+                            if (creep.harvest(target) == ERR_NOT_IN_RANGE) {
+                                let err = creep.moveTo(target);
+                                if (err == ERR_NO_PATH) {
+                                    data.noPathRetries++;
+                                } else {
+                                    data.noPathRetries = 0;
+                                }
+                            }
+                        } else {
+                            // source is empty
+                            data.targetId = null;
+                        }
                     }
+
+
                 }
             } else {
                 // target is gone

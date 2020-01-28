@@ -24,7 +24,6 @@ const cleanupTerminatedTasks = (tasks, workers) => {
 const cleanupDeadWorkers = (tasks, workers) => {
     let deadWorkers = workers.getDeadWorkers();
     deadWorkers.forEach((deadWorker) => {
-        console.log("Cleaning up dead worker " + deadWorker.id);
         if (deadWorker.assignedTaskId) {
             let task = tasks.getById(deadWorker.assignedTaskId);
             if (task.assignedWorkers[deadWorker.id]) {

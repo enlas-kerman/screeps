@@ -67,16 +67,54 @@ module.exports = class {
                     tower.repair(repairTarget);
                 }
             });
+            return true;
         }
+        return false;
+    }
+
+
+    repairDefenses(towers) {
+        let defensives = this.room.find(FIND_STRUCTURES, {
+            filter: (s) => {
+                // repair once a structure hits drop below 85% max
+                return (s.structureType == STRUCTURE_WALL || s.structureType == STRUCTURE_RAMPART) && s.hits < 65000;
+            }
+        });
+        if (defensives.length > 0) {
+            let defensive = defensives[0];
+            towers.forEach((tower) => {
+                if (tower.store.getUsedCapacity(RESOURCE_ENERGY) > tower.store.getCapacity(RESOURCE_ENERGY) * 0.60) {
+                    tower.repair(defensive);
+                }
+            });
+        }
+    }
+
+
+    heal(towers) {
+        let wounded = this.room.find(FIND_MY_CREEPS, {
+            filter: (creep) => {
+                return creep.hits < creep.hitsMax;
+            }
+        });
+        if (wounded.length > 0) {
+            towers.forEach((tower) => {
+                tower.heal(wounded[0]);
+            });
+            return true;
+        }
+        return false;
     }
 
 
     update() {
         let towers = this.findTowers(this.room);
-        console.log('Towers: ' + towers.length);
         if (!this.defend(towers)) {
-            console.log('repairing');
-            this.repair(towers);
+            if (!this.heal(towers)) {
+                if (!this.repair(towers)) {
+                    this.repairDefenses(towers);
+                }
+            }
         }
     }
 

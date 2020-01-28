@@ -62,7 +62,6 @@ module.exports = class {
 
 
     unassign(workerId) {
-        console.log('unassigning ' + workerId);
         if (this.workers[workerId]) {
             let worker = new Worker();
             worker.setState(this.workers[workerId]);
@@ -92,7 +91,7 @@ module.exports = class {
             };
             Memory.nextWorkerId++;
         } else {
-            console.log('Spawn ' + spawn.id + ' error: ' + err);
+            //console.log('Spawn ' + spawn.id + ' error: ' + err);
         }
     }
 
