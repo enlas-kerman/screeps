@@ -102,6 +102,11 @@ const Tasks = class {
     }
 
 
+    getAll() {
+        return this.memory.index;
+    }
+
+
     getByType(type, opts) {
         let typeTasks = Object.keys(this.memory.types[type]);
         let tasks = new Array(typeTasks.length);

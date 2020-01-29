@@ -15,6 +15,10 @@ module.exports = class {
     constructor(room) {
         this.room = room;
 
+        if (!Memory.rooms || !Memory.rooms[room.name] || !Memory.rooms[room.name].inv) {
+            this.initMemory();
+        }
+
         this.goals = {};
         this.goals['repair goal'] = new RepairGoal('RepairGoal-' + room.name);
         this.goals['upgrade controller goal'] = new UpgradeControllerGoal('UpgradeControllerGoal-' + room.name);
@@ -22,7 +26,14 @@ module.exports = class {
         this.goals['build goal'] = new BuildGoal('BuildGoal-' + room.name);
         this.goals['harvesting'] = new HarvestingGoal('HarvestingGoal-' + room.name);
         this.goals['extraction'] = new ExtractionGoal('ExtractionGoal-' + room.name);
-        this.goals['inventory'] = new InventoryGoal('InventoryGoal-' + room.name);
+        this.goals['inventory'] = new InventoryGoal('InventoryGoal-' + room.name, Memory.rooms[room.name].inv);
+    }
+
+
+    initMemory() {
+        Memory.rooms = Memory.rooms || {};
+        Memory.rooms[this.room.name] = Memory.rooms[this.room.name] || {};
+        Memory.rooms[this.room.name].inv = Memory.rooms[this.room.name].inv || {};
     }
 
 
@@ -90,6 +101,7 @@ module.exports = class {
                 isDebugVisible && console.log('  assigning ' + worker.id + ' to task ' + task.id);
                 task.assignedWorkers[worker.id] = worker.id;
                 workers.assign(worker.id, task.id);
+                numAssignedWorkers = Object.keys(task.assignedWorkers).length
             }
         }
 
