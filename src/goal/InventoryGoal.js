@@ -2,24 +2,24 @@ const DeliverTask = require('task_DeliverTask');
 const DeliverEnergyTask = require('task_DeliverEnergyTask');
 
 
-_Memory = {
-    W11N46: {
-        RESOURCE_ENERGY: {
-            desired: 50000,
-            actual: 45000
-        },
-        RESOURCE_CATALYST: {
-            desired: 120000,
-            actual: 55000,       // desired - actual is the amount that can be purchased
-            buyPriceLimit: 2.90  // the highest price willing to pay per unit
-        },
-        RESOURCE_UTRIUM: {
-            desired: 100500,
-            actual: 120500,
-            sellPriceLimit: 1.20
-        }
-    }
-}
+// _Memory = {
+//     W11N46: {
+//         RESOURCE_ENERGY: {
+//             desired: 50000,
+//             actual: 45000
+//         },
+//         RESOURCE_CATALYST: {
+//             desired: 120000,
+//             actual: 55000,       // desired - actual is the amount that can be purchased
+//             buyPriceLimit: 2.90  // the highest price willing to pay per unit
+//         },
+//         RESOURCE_UTRIUM: {
+//             desired: 100500,
+//             actual: 120500,
+//             sellPriceLimit: 1.20
+//         }
+//     }
+// }
 
 
 const Goal = class {
