@@ -192,9 +192,9 @@ const Goal = class {
             return b.effPrice - a.effPrice;
         });
 
-        orders.forEach((order) => {
-            console.log('order[' + order.id + ']: ' + order.amount + ' @ ' + order.price);
-        })
+        // orders.forEach((order) => {
+        //     console.log('order[' + order.id + ']: ' + order.amount + ' @ ' + order.price);
+        // })
 
         return orders[0];
     }

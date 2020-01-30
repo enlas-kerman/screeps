@@ -7,10 +7,10 @@ let me = this;
 const MAX_WORKERS = 10;
 
 const getMaxWorkers = (roomName) => {
-    if (roomName == 'W11N45') {
+    if (roomName == 'W11N45' || roomName == 'W11N46') {
         return MAX_WORKERS;
     }
-    return 10;
+    return 7;
 }
 
 

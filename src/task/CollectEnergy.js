@@ -56,6 +56,19 @@ const findBestEnergySource = (room, worker) => {
         }
     }
 
+    // ruins
+    let ruins = room.find(FIND_RUINS, {
+        filter: (ruin) => {
+            return ruin.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
+        }
+    });
+    if (ruins.length > 0) {
+        let cheapest = findCheapestPath(worker, ruins);
+        if (cheapest) {
+            return cheapest.target;
+        }
+    }
+
 
     // containers next
     let containers = room.find(FIND_STRUCTURES, {
