@@ -13,7 +13,7 @@ const Task = class {
         this._m = {};
     }
 
-    
+
     _doInitState(worker) {
         let creep = worker.getCreep();
         for (let name in creep.store) {

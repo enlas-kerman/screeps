@@ -5,6 +5,7 @@ const SpawnEnergyGoal = require('goal_SpawnEnergyGoal');
 const BuildGoal = require('goal_BuildGoal');
 const HarvestingGoal = require('goal_HarvestingGoal');
 const ExtractionGoal = require('goal_ExtractionGoal');
+const InventoryGoal = require('goal_InventoryGoal');
 const Debug = require('debug');
 
 const MINIMUM_TASK_RANGE = 14;
@@ -14,6 +15,10 @@ module.exports = class {
     constructor(room) {
         this.room = room;
 
+        if (!Memory.rooms || !Memory.rooms[room.name] || !Memory.rooms[room.name].inv) {
+            this.initMemory();
+        }
+
         this.goals = {};
         this.goals['repair goal'] = new RepairGoal('RepairGoal-' + room.name);
         this.goals['upgrade controller goal'] = new UpgradeControllerGoal('UpgradeControllerGoal-' + room.name);
@@ -21,6 +26,14 @@ module.exports = class {
         this.goals['build goal'] = new BuildGoal('BuildGoal-' + room.name);
         this.goals['harvesting'] = new HarvestingGoal('HarvestingGoal-' + room.name);
         this.goals['extraction'] = new ExtractionGoal('ExtractionGoal-' + room.name);
+        this.goals['inventory'] = new InventoryGoal('InventoryGoal-' + room.name, Memory.rooms[room.name].inv);
+    }
+
+
+    initMemory() {
+        Memory.rooms = Memory.rooms || {};
+        Memory.rooms[this.room.name] = Memory.rooms[this.room.name] || {};
+        Memory.rooms[this.room.name].inv = Memory.rooms[this.room.name].inv || {};
     }
 
 
@@ -82,11 +95,13 @@ module.exports = class {
         // assign workers to tasks until we run out of workers
         for (let i=0; i < pending.length; i++) {
             let task = pending[i];
-            while (Object.keys(task.assignedWorkers).length < task.minWorkers && unassigned.length > 0) {
+            let numAssignedWorkers = Object.keys(task.assignedWorkers).length;
+            while (numAssignedWorkers < task.minWorkers && unassigned.length > 0) {
                 let worker = unassigned.shift();
                 isDebugVisible && console.log('  assigning ' + worker.id + ' to task ' + task.id);
                 task.assignedWorkers[worker.id] = worker.id;
                 workers.assign(worker.id, task.id);
+                numAssignedWorkers = Object.keys(task.assignedWorkers).length
             }
         }
 
