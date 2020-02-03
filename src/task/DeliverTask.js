@@ -106,7 +106,7 @@ const Task = class {
             worker.clearTaskData();
         }
         data.state = data.state || 0;
-        console.log('[DeliverTask ' + this._m.memory.id + '] ' + worker.getId() + ' state ' + worker.getTaskData().state);
+        //console.log('[DeliverTask ' + this._m.memory.id + '] ' + worker.getId() + ' state ' + worker.getTaskData().state);
         switch(data.state) {
             case ST_INIT:
                 this._doInitState(worker);

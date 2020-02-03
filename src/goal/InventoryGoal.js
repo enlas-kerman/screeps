@@ -57,8 +57,8 @@ const Goal = class {
                 resourceType: resourceType,
                 minPrice: sellLimit
             });
-            console.log('best ask: ' + bestAsk.amount + ' @ ' + bestAsk.price);
-            if (bestAsk.price >= sellLimit) {  // if not, clear all tasks, because the trade cant be done
+            if (bestAsk && bestAsk.price >= sellLimit) {  // if not, clear all tasks, because the trade cant be done
+                console.log('best ask: ' + bestAsk.amount + ' @ ' + bestAsk.price);
                 console.log('The asking price is acceptable (ask: ' + bestAsk.price + ', limit: ' + sellLimit + ')');
 
                 let totalUnitsAvailable = inStorage + inTerminal;
@@ -80,6 +80,7 @@ const Goal = class {
                         let deliverEnergyKey = DeliverEnergyTask.TYPE + '-' + room.name + '-terminal-energy';
                         let terminalEnergy = terminal.store.getUsedCapacity(RESOURCE_ENERGY);
                         let energyCost = bestAsk.unitEnergyCost * tradeAmount;
+                        console.log('Energy cost: ' + energyCost + ',  bestAsk: ' + bestAsk + ',  tradeAmount: ' + tradeAmount);
                         if (terminalEnergy >= energyCost) { // if not, create task to deliver energy from source/container/tombstone/etc to terminal
                             console.log('There is enough energy in the terminal to make a trade: ' + terminalEnergy + ' > ' + energyCost);
                             tasks.terminate(deliverEnergyKey);
@@ -175,26 +176,21 @@ const Goal = class {
                    order.type == ORDER_BUY &&
                    order.price >= minPrice;
         });
+
         if (orders.length == 0) {
             return null;
         }
+
+        orders.forEach((order) => {
+            order.unitEnergyCost = market.calcTransactionCost(100, room.name, order.roomName)/100;
+            order.effPrice = Math.ceil((order.price - order.unitEnergyCost * 0.018) * 1000) / 1000;
+        });
+
         
         // sort by net sale (price - cost of energy)
         orders.sort((a,b) => {
-            if (typeof(a.effPrice) == 'undefined') {
-                a.unitEnergyCost = market.calcTransactionCost(100, room.name, a.roomName)/100;
-                a.effPrice = Math.ceil((a.price - a.unitEnergyCost * 0.018) * 1000) / 1000;
-            }
-            if (typeof(b.effPrice) == 'undefined') {
-                b.unitEnergyCost = market.calcTransactionCost(100, room.name, b.roomName)/100;
-                b.effPrice = Math.ceil((b.price - b.unitEnergyCost * 0.018) * 1000) / 1000;
-            }
             return b.effPrice - a.effPrice;
         });
-
-        // orders.forEach((order) => {
-        //     console.log('order[' + order.id + ']: ' + order.amount + ' @ ' + order.price);
-        // })
 
         return orders[0];
     }
