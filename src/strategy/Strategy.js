@@ -6,6 +6,7 @@ const BuildGoal = require('goal_BuildGoal');
 const HarvestingGoal = require('goal_HarvestingGoal');
 const ExtractionGoal = require('goal_ExtractionGoal');
 const InventoryGoal = require('goal_InventoryGoal');
+const ScavengingGoal = require('goal_ScavengingGoal');
 const Debug = require('debug');
 
 const MINIMUM_TASK_RANGE = 14;
@@ -27,6 +28,7 @@ module.exports = class {
         this.goals['harvesting'] = new HarvestingGoal('HarvestingGoal-' + room.name);
         this.goals['extraction'] = new ExtractionGoal('ExtractionGoal-' + room.name);
         this.goals['inventory'] = new InventoryGoal('InventoryGoal-' + room.name, Memory.rooms[room.name].inv);
+        this.goals['scavenging'] = new ScavengingGoal('ScavengingGoal-' + room.name);
     }
 
 

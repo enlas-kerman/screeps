@@ -23,11 +23,20 @@ const Task = class {
     }
 
 
+    _getUsedCapacity(source, resourceType) {
+        if (resourceType == '*') {
+            return source.store.getUsedCapacity();
+        }
+        return source.store.getUsedCapacity(resourceType);
+    }
+
+
     _doCollectState(worker) {
         let task = this._m.memory;
 
         let source = Game.getObjectById(task.sourceId);
-        if (!source || source.store.getUsedCapacity(task.resourceType) == 0) {
+        if (!source || (source.store && this._getUsedCapacity(source, task.resourceType) == 0)) {
+            worker.getTaskData().state = ST_DELIVER;
             return;
         }
 
@@ -37,8 +46,23 @@ const Task = class {
             return;
         }
 
-        if (creep.withdraw(source, task.resourceType) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(source);
+        if (source.store) {
+            let resourceTypes = task.resourceType == '*' ? Object.keys(source.store) : [task.resourceType];
+            resourceTypes.forEach((resourceType) => {
+                let err = creep.withdraw(source, resourceType);
+                if (err == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(source);
+                    return false;
+                } else
+                if (err == ERR_FULL) {
+                    return false;
+                }
+            });
+        } else
+        if (typeof(source.amount) !== 'undefined') {
+            if (creep.pickup(source) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(source);
+            }
         }
 
     }
@@ -58,11 +82,14 @@ const Task = class {
             return;
         }
 
-        for (let resourceName in creep.store) {
-            if (creep.transfer(destination, resourceName) == ERR_NOT_IN_RANGE) {
+        let resourceTypes = Object.keys(creep.store);
+        resourceTypes.forEach((resourceType) => {
+            let err = creep.transfer(destination, resourceType);
+            if (err == ERR_NOT_IN_RANGE) {
                 creep.moveTo(destination);
+                return false;
             }
-        }
+        });
     }
 
 
