@@ -70,7 +70,7 @@ module.exports = class {
 
 
     getParts(room) {
-        let availableEnergy = Math.min(1000, room.energyCapacityAvailable);
+        let availableEnergy = Math.min(1600, room.energyCapacityAvailable);
         let numWork = Math.max(1, Math.floor(availableEnergy / 200));
         let parts = Array(numWork).fill(WORK)
                         .concat(Array(numWork).fill(CARRY))
@@ -91,16 +91,16 @@ module.exports = class {
     getWorkerInfo(room) {
         let sources = room.find(FIND_SOURCES);
         let minerals = room.find(FIND_MINERALS);
-        const MAX_WORKERS = 9;
-        const MIN_WORKERS = 5;
-        const MAX_E = 1000;
+        const MAX_WORKERS = 6;
+        const MIN_WORKERS = 4;
+        const MAX_E = 1600;
         const MIN_E = 200;
         let parts = this.getParts(room);
         let cost = this.getCost(parts);
         if (cost > MAX_E) {
             throw new Error('cost of parts ' + cost + ' exceeds max energy ' + MAX_E);
         }
-        let freeWorkers = MAX_WORKERS - [(cost - MIN_E) / (MAX_E - MIN_E) * (MAX_WORKERS - MIN_WORKERS)]
+        let freeWorkers = MAX_WORKERS - Math.floor((cost - MIN_E) / (MAX_E - MIN_E) * (MAX_WORKERS - MIN_WORKERS))
         let totalWorkers = sources.length + minerals.length + freeWorkers;
         return {
             room: room.name,
