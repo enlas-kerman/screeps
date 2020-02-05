@@ -48,11 +48,10 @@ const initMemory = (roomName) => {
 
 module.exports = class {
 
-    constructor(roomName, maxWorkers) {
+    constructor(roomName) {
         this.roomName = roomName;
-        this.maxWorkers = maxWorkers;
         this.memory = Memory.supervisors[roomName] || initMemory(roomName);
-        this.workers = new Workers(roomName, Game.creeps, this.memory.workers, maxWorkers);
+        this.workers = new Workers(roomName, Game.creeps, this.memory.workers);
         this.tasks = new Tasks(Game.rooms[roomName], this.memory.tasks);
         this.strategy = new Strategy(Game.rooms[roomName]);
     }

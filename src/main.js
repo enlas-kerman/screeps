@@ -4,14 +4,6 @@ const Debug = require('debug');
 
 let me = this;
 
-const MAX_WORKERS = 9;
-
-const getMaxWorkers = (roomName) => {
-    if (roomName == 'W11N45' || roomName == 'W11N46') {
-        return MAX_WORKERS;
-    }
-    return MAX_WORKERS;
-}
 
 
 module.exports.loop = () => {
@@ -20,7 +12,7 @@ module.exports.loop = () => {
     let towers = {};
     for (let roomName in Game.rooms) {
         if (Game.rooms[roomName].controller && Game.rooms[roomName].controller.my) {
-            supervisors[roomName] = new Supervisor(roomName, getMaxWorkers(roomName));
+            supervisors[roomName] = new Supervisor(roomName);
             towers[roomName] = new Tower(roomName);
         }
     }
@@ -50,7 +42,6 @@ me.purge = (roomName) => {
 
 
 me.worker = (id) => {
-
     for (let name in me.supervisors) {
         let workerId = '|' + id + '|';
         let worker = me.supervisors[name].workers.getWorkerById(workerId);
@@ -64,6 +55,29 @@ me.worker = (id) => {
             return;
         }
     }
+}
+
+
+me.workers = (verbose) => {
+    let totalWorkers = 0;
+    let totalRooms = 0;
+    for (let name in me.supervisors) {
+        totalRooms++;
+        let workers = me.supervisors[name].workers;
+        let workerInfo = workers.getInfo();
+        totalWorkers += workerInfo.length;
+        console.log('Room ' + name);
+        if (verbose) {
+            workerInfo.forEach((worker) => {
+                let s = worker.getId();
+                s += '  task: ' + worker.getAssignedTaskId();
+                console.log(' ' + s);
+            });
+        }
+        console.log('  total: ' + workerInfo.length);
+    }
+    console.log('Total Workers: ' + totalWorkers);
+    console.log('Total Rooms: ' + totalRooms);
 }
 
 

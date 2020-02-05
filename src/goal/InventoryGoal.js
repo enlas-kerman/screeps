@@ -41,7 +41,7 @@ const Goal = class {
 
 
     analyzeResource(room, tasks, resourceType) {
-        console.log('Analyzing market for ' + resourceType);
+        //console.log('Analyzing market for ' + resourceType);
         let maxSellLotSize = 2000;
         let resource = this.memory[resourceType];
         let { desired, sellLimit } = resource;
@@ -59,7 +59,7 @@ const Goal = class {
             });
             if (bestAsk && bestAsk.price >= sellLimit) {  // if not, clear all tasks, because the trade cant be done
                 console.log('best ask: ' + bestAsk.amount + ' @ ' + bestAsk.price);
-                console.log('The asking price is acceptable (ask: ' + bestAsk.price + ', limit: ' + sellLimit + ')');
+                console.log('The asking price for ' + resourceType + ' is acceptable (ask: ' + bestAsk.price + ', limit: ' + sellLimit + ')');
 
                 let totalUnitsAvailable = inStorage + inTerminal;
                 let surplus = totalUnitsAvailable - desired;

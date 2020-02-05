@@ -10,11 +10,10 @@ if (typeof Memory.nextWorkerId === 'undefined') {
 
 module.exports = class {
 
-    constructor(roomName, creeps, workers, maxWorkers) {
+    constructor(roomName, creeps, workers) {
         this.roomName = roomName;
         this.creeps = creeps;
         this.workers = workers;
-        this.maxWorkers = maxWorkers;
         this.deadWorkers = [];
 
         for (let workerId in workers) {
@@ -70,22 +69,56 @@ module.exports = class {
     }
 
 
-    spawn(genetics) {
+    getParts(room) {
+        let availableEnergy = Math.min(1000, room.energyCapacityAvailable);
+        let numWork = Math.max(1, Math.floor(availableEnergy / 200));
+        let parts = Array(numWork).fill(WORK)
+                        .concat(Array(numWork).fill(CARRY))
+                        .concat(Array(numWork).fill(MOVE));
+        return parts;
+    }
+
+
+    getCost(parts) {
+        let cost = 0;
+        for(let i=0; i < parts.length; i++) {
+            cost += BODYPART_COST[parts[i]];
+        }
+        return cost;
+    }
+
+
+    getWorkerInfo(room) {
+        let sources = room.find(FIND_SOURCES);
+        let minerals = room.find(FIND_MINERALS);
+        const MAX_WORKERS = 9;
+        const MIN_WORKERS = 5;
+        const MAX_E = 1000;
+        const MIN_E = 200;
+        let parts = this.getParts(room);
+        let cost = this.getCost(parts);
+        if (cost > MAX_E) {
+            throw new Error('cost of parts ' + cost + ' exceeds max energy ' + MAX_E);
+        }
+        let freeWorkers = MAX_WORKERS - [(cost - MIN_E) / (MAX_E - MIN_E) * (MAX_WORKERS - MIN_WORKERS)]
+        let totalWorkers = sources.length + minerals.length + freeWorkers;
+        return {
+            room: room.name,
+            parts: parts,
+            totalWorkers: totalWorkers
+        }
+    }
+
+
+    spawn(workerInfo) {
+        // console.log('room: ' + workerInfo.room);
+        // console.log('parts: ' + workerInfo.parts);
+        // console.log('total: ' + workerInfo.totalWorkers);
+
         let room = Game.rooms[this.roomName];
         let spawns = room.find(FIND_MY_SPAWNS);
-        let parts = [];
-        if (spawns.length === 0) {
-            spawns = [Game.spawns['MARA']];
-            parts = [WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
-        } else
-        if (room.energyCapacityAvailable < 800) {
-            parts = [WORK, CARRY, MOVE];
-        } else
-        if (room.energyCapacityAvailable < 950) {
-            parts = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
-        } else {
-            parts = [WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
-        }
+
+        let parts = workerInfo.parts;
 
         let spawn = spawns[0];
         let workerId = '|' + Memory.nextWorkerId + '|';
@@ -126,9 +159,25 @@ module.exports = class {
             }
         });
 
-        if (this.getWorkerCount() < this.maxWorkers) {
-            this.spawn();
+        let room = Game.rooms[this.roomName];
+        let workerInfo = this.getWorkerInfo(room);
+
+        if (this.getWorkerCount() < workerInfo.totalWorkers) {
+            this.spawn(workerInfo);
         }
     }
 
+
+    getInfo() {
+        let results = [];
+        Object.values(this.workers).forEach((workerMem) => {
+            let worker = new Worker();
+            worker.setState(workerMem);
+            results.push(worker);
+        });
+        results.sort((a,b) => {
+            return a.getId() > b.getId();
+        });
+        return results;
+    }
 }
