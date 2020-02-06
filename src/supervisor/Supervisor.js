@@ -38,9 +38,71 @@ const initMemory = (roomName) => {
     Memory.supervisors[roomName] = {
         tasks: {},
         workers: {},
+        energy: {},
         state: ST_RUNNING
     };
     return Memory.supervisors[roomName];
+}
+
+
+const ENERGY_MONITOR_FRAME_SIZE = 100;
+
+const EnergyMonitor = class {
+
+    constructor(roomName, memory) {
+        this.roomName = roomName;
+        this.memory = memory;
+        if (!this.memory.data || this.memory.data.length !== ENERGY_MONITOR_FRAME_SIZE) {
+            this.memory.data = Array(ENERGY_MONITOR_FRAME_SIZE);
+            this.memory.head = ENERGY_MONITOR_FRAME_SIZE - 1;
+            this.memory.tail = ENERGY_MONITOR_FRAME_SIZE - 1;
+        }
+    }
+
+
+    update() {
+        if (Game.time % 3) {
+            let room = Game.rooms[this.roomName];
+            this.memory.head = (this.memory.head + 1) % ENERGY_MONITOR_FRAME_SIZE;
+            this.memory.data[this.memory.head] = room.energyAvailable;
+            if (this.memory.head === this.memory.tail) {
+                this.memory.tail = (this.memory.tail + 1) % ENERGY_MONITOR_FRAME_SIZE;
+            }
+        }
+    }
+
+
+    getAverage() {
+        if (this.memory.tail === this.memory.head) {
+            return -1;
+        }
+        let i = this.memory.tail;
+        let sum = 0;
+        let count = 0;
+        while (i !== this.memory.head) {
+            count++;
+            i = (i + 1) % ENERGY_MONITOR_FRAME_SIZE;
+            sum += this.memory.data[i];
+        }
+        // count++;
+        // sum += this.memory.data[i];
+        return Math.floor(sum/count);
+    }
+
+
+    getMax() {
+        if (this.memory.tail === this.memory.head) {
+            return -1;
+        }
+        let i = this.memory.tail;
+        let max = 0;
+        while (i !== this.memory.head) {
+            i = (i + 1) % ENERGY_MONITOR_FRAME_SIZE;
+            max = Math.max(max, this.memory.data[i]);
+        }
+        return max;
+    }
+
 }
 
 
@@ -51,7 +113,7 @@ module.exports = class {
     constructor(roomName) {
         this.roomName = roomName;
         this.memory = Memory.supervisors[roomName] || initMemory(roomName);
-        this.workers = new Workers(roomName, Game.creeps, this.memory.workers);
+        this.workers = new Workers(roomName, Game.creeps, this.memory.workers, new EnergyMonitor(roomName, this.memory.energy));
         this.tasks = new Tasks(Game.rooms[roomName], this.memory.tasks);
         this.strategy = new Strategy(Game.rooms[roomName]);
     }

@@ -8,12 +8,15 @@ if (typeof Memory.nextWorkerId === 'undefined') {
 
 
 
+
+
 module.exports = class {
 
-    constructor(roomName, creeps, workers) {
+    constructor(roomName, creeps, workers, energyMonitor) {
         this.roomName = roomName;
         this.creeps = creeps;
         this.workers = workers;
+        this.energyMonitor = energyMonitor;
         this.deadWorkers = [];
 
         for (let workerId in workers) {
@@ -70,7 +73,9 @@ module.exports = class {
 
 
     getParts(room) {
-        let availableEnergy = Math.min(1600, room.energyCapacityAvailable);
+        let availableEnergy = Math.min(1600, this.energyMonitor.getMax());
+        console.log('Room ' + this.roomName + ': ' + availableEnergy + ' / ' + room.energyCapacityAvailable);
+        //availableEnergy = Math.min(1600, room.energyCapacityAvailable);
         let numWork = Math.max(1, Math.floor(availableEnergy / 200));
         let parts = Array(numWork).fill(WORK)
                         .concat(Array(numWork).fill(CARRY))
@@ -92,7 +97,7 @@ module.exports = class {
         let sources = room.find(FIND_SOURCES);
         let minerals = room.find(FIND_MINERALS);
         const MAX_WORKERS = 6;
-        const MIN_WORKERS = 4;
+        const MIN_WORKERS = 3;
         const MAX_E = 1600;
         const MIN_E = 200;
         let parts = this.getParts(room);
@@ -140,6 +145,11 @@ module.exports = class {
 
 
     update(tasks) {
+
+        this.energyMonitor.update();
+        //console.log('Energy[' + this.roomName + '] avg: ' + this.energyMonitor.getAverage());
+        // console.log('    Head: ' + this.energyMonitor.memory.head);
+        // console.log('    Tail: ' + this.energyMonitor.memory.tail);
 
         let worker = new Worker();
 
