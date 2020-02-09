@@ -43,8 +43,8 @@ const Goal = class {
                     type: DeliverEnergyTask.TYPE,
                     goal: this.goalId,
                     targetId: target.id,
-                    score: 15,
-                    minWorkers: target.structureType === STRUCTURE_SPAWN || target.structureType === STRUCTURE_TOWER ? 2 : 1,
+                    score: target.structureType === STRUCTURE_TOWER ? 96 : 97,
+                    minWorkers: target.structureType === STRUCTURE_SPAWN || target.structureType === STRUCTURE_TOWER ? 1 : 1,
                     maxWorkers: target.structureType === STRUCTURE_SPAWN ? 6 : 1,
                     assignedWorkers: {}
                 });

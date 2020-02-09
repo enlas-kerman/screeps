@@ -73,7 +73,7 @@ module.exports = class {
 
 
     getParts(room) {
-        let availableEnergy = Math.min(1600, this.energyMonitor.getMax());
+        let availableEnergy = Math.min(1200, this.energyMonitor.getMax());
         console.log('Room ' + this.roomName + ': ' + availableEnergy + ' / ' + room.energyCapacityAvailable);
         //availableEnergy = Math.min(1600, room.energyCapacityAvailable);
         let numWork = Math.max(1, Math.floor(availableEnergy / 200));
@@ -96,8 +96,8 @@ module.exports = class {
     getWorkerInfo(room) {
         let sources = room.find(FIND_SOURCES);
         let minerals = room.find(FIND_MINERALS);
-        const MAX_WORKERS = 6;
-        const MIN_WORKERS = 3;
+        const MAX_WORKERS = 7;
+        const MIN_WORKERS = 4;
         const MAX_E = 1600;
         const MIN_E = 200;
         let parts = this.getParts(room);

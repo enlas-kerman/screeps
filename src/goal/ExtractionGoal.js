@@ -39,7 +39,7 @@ const Goal = class {
                         targetId: container.id,
                         mineralId: mineral.id,
                         mineralType: mineral.mineralType,
-                        score: 98,
+                        score: 89,
                         minWorkers: 1,
                         maxWorkers: 1,
                         assignedWorkers: {}

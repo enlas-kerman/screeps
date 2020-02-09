@@ -18,7 +18,7 @@ const Goal = class {
         for (let i=0; i < pendingTasks.length; i++) {
             let task = pendingTasks[i];
             let target = Game.getObjectById(task.targetId);
-            if (target == null || target.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+            if (target == null || target.store.getFreeCapacity() == 0) {
                 tasks.terminate(task.id);
             }
         }
@@ -27,13 +27,13 @@ const Goal = class {
         for (let i=0; i < containers.length; i++) {
             let container = containers[i];
             let key = HarvestingTask.TYPE + '-' + container.id;
-            if (!tasks.exists(key) && (container.store.getFreeCapacity() > 200)) {
+            if (!tasks.exists(key) && (container.store.getFreeCapacity() > 600)) {
                 tasks.addTask({
                     id: key,
                     type: HarvestingTask.TYPE,
                     goal: this.goalId,
                     targetId: container.id,
-                    score: 99,
+                    score: 97,
                     minWorkers: 1,
                     maxWorkers: 1,
                     assignedWorkers: {}

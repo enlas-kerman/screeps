@@ -35,7 +35,7 @@ const Task = class {
         } else {
 
             if (creep.store.getFreeCapacity() == 0) {
-                creep.transfer(container, RESOURCE_ENERGY);
+                creep.transfer(container, RESOURCE_ENERGY, Math.min(creep.store.getUsedCapacity(RESOURCE_ENERGY), container.store.getFreeCapacity()));
             } else {
                 let data = worker.getTaskData();
                 if (!data.sourceId) {

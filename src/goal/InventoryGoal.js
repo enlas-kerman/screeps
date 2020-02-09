@@ -80,7 +80,7 @@ const Goal = class {
                         let deliverEnergyKey = DeliverEnergyTask.TYPE + '-' + room.name + '-terminal-energy';
                         let terminalEnergy = terminal.store.getUsedCapacity(RESOURCE_ENERGY);
                         let energyCost = bestAsk.unitEnergyCost * tradeAmount;
-                        console.log('Energy cost: ' + energyCost + ',  bestAsk: ' + bestAsk + ',  tradeAmount: ' + tradeAmount);
+                        console.log('Energy cost: ' + energyCost + ',  bestAsk: ' + bestAsk.amount + ',  tradeAmount: ' + tradeAmount);
                         if (terminalEnergy >= energyCost) { // if not, create task to deliver energy from source/container/tombstone/etc to terminal
                             console.log('There is enough energy in the terminal to make a trade: ' + terminalEnergy + ' > ' + energyCost);
                             tasks.terminate(deliverEnergyKey);
