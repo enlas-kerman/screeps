@@ -53,8 +53,9 @@ module.exports = class {
     drawTaskRanges(visual, tasks) {
         for (let i=0; i < tasks.length; i++) {
             let task = tasks[i];
-            if (task.targetId) {
-                let object = Game.getObjectById(task.targetId);
+            let targetId = this.getTaskTargetId(task);
+            if (targetId) {
+                let object = Game.getObjectById(targetId);
                 if (object.pos) {
                     let isAssigned = Object.keys(task.assignedWorkers).length > 0;
                     let fill = isAssigned ? '#20a02020' : '#5050ff20';
@@ -82,12 +83,39 @@ module.exports = class {
     }
 
 
+    drawRoomStatus(visual, room) {
+        let energy = room.energyAvailable/room.energyCapacityAvailable*100;
+        visual.text('Room energy: ' + room.energyAvailable + '/' + room.energyCapacityAvailable + ' (' + energy.toFixed(1) + '%)', 6, 12, {
+            color: energy > 50 ? '#80ff80f0' : '#ff8080f0',
+            strokeWidth: 0.1,
+            align: 'left',
+            backgroundColor: '80a080a0'
+        });
+    }
+
+
+    getTaskTargetId(task) {
+        let targetId = null;
+        if (task.targetId) {
+            targetId = task.targetId;
+        }
+        if (task.targetIds) {
+            let targetIds = Object.keys(task.targetIds);
+            if (targetIds.length > 0) {
+                targetId = targetIds[0];
+            }
+        }
+        return targetId;
+    }
+
+
     assign(tasks, workers) {
         let isDebugVisible = Debug.isDebugVisible();
 
         let pending = this.plan(tasks, workers);
         if (Debug.isTaskRangeVisible()) {
             this.drawTaskRanges(this.room.visual, pending);
+            this.drawRoomStatus(this.room.visual, this.room);
         }
 
         let unassigned = workers.getUnassignedWorkers();
@@ -126,8 +154,9 @@ module.exports = class {
                     for (let k=0; k < otherTaskWorkers.length && Object.keys(task.assignedWorkers).length < task.minWorkers; k++) {
                         let otherTaskWorker = otherTaskWorkers[k];
                         let otherTaskCreep = Game.creeps[otherTaskWorker];
-                        if (otherTaskCreep && task.targetId) {
-                            let taskTarget = Game.getObjectById(task.targetId);
+                        let taskTargetId = this.getTaskTargetId(task);
+                        if (otherTaskCreep && taskTargetId) {
+                            let taskTarget = Game.getObjectById(taskTargetId);
                             if (taskTarget) {
                                 let range = taskTarget.pos.getRangeTo(otherTaskCreep);
                                 if (range < MINIMUM_TASK_RANGE) {

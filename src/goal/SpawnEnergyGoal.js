@@ -1,11 +1,19 @@
-let DeliverEnergyTask = require('task_DeliverEnergyTask');
+let FillEnergyTask = require('task_FillEnergyTask');
 
 
 const findSpawnsAndExtsNeedingEnergy = (room) => {
     return room.find(FIND_STRUCTURES, {
         filter: (s) => {
-            return ((s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION) && (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0))
-                || ((s.structureType == STRUCTURE_TOWER) && (s.store.getFreeCapacity(RESOURCE_ENERGY) > s.store.getCapacity(RESOURCE_ENERGY) * 0.25));
+            return (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION) && (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
+        }
+    });
+}
+
+
+const findTowersNeedingEnergy = (room) => {
+    return room.find(FIND_STRUCTURES, {
+        filter: (s) => {
+            return (s.structureType == STRUCTURE_TOWER) && (s.store.getFreeCapacity(RESOURCE_ENERGY) > s.store.getCapacity(RESOURCE_ENERGY) * 0.25);
         }
     });
 }
@@ -18,40 +26,77 @@ const Goal = class {
         this.goalId = goalId;
     }
 
+
     analyze(room, tasks) {
-
-        let pendingTasks = tasks.getByType(DeliverEnergyTask.TYPE, {
-            filter: {
-                goal: this.goalId
+        let spawnExts = findSpawnsAndExtsNeedingEnergy(room);
+        let spawnExtsKey = FillEnergyTask.TYPE + '-spawn-' + room.name;
+        if (spawnExts.length == 0) {
+            if (tasks.exists(spawnExtsKey)) {
+                tasks.terminate(spawnExtsKey);
             }
-        });
-        for (let i=0; i < pendingTasks.length; i++) {
-            let task = pendingTasks[i];
-            let target = Game.getObjectById(task.targetId);
-            if (target == null || target.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-                tasks.terminate(task.id);
-            }
-        }
-
-        let targets = findSpawnsAndExtsNeedingEnergy(room);
-        for (let i=0; i < targets.length; i++) {
-            let target = targets[i];
-            let key = DeliverEnergyTask.TYPE + '-' + target.id;
-            if (!tasks.exists(key)) {
-                tasks.addTask({
-                    id: key,
-                    type: DeliverEnergyTask.TYPE,
+        } else {
+            let task = null;
+            if (!tasks.exists(spawnExtsKey)) {                
+                task = tasks.addTask({
+                    id: spawnExtsKey,
+                    type: FillEnergyTask.TYPE,
                     goal: this.goalId,
-                    targetId: target.id,
-                    score: target.structureType === STRUCTURE_TOWER ? 96 : 97,
-                    minWorkers: target.structureType === STRUCTURE_SPAWN || target.structureType === STRUCTURE_TOWER ? 1 : 1,
-                    maxWorkers: target.structureType === STRUCTURE_SPAWN ? 6 : 1,
+                    score: 97,
+                    minWorkers: 3,
+                    maxWorkers: 5,
                     assignedWorkers: {}
                 });
+            } else {
+                task = tasks.getById(spawnExtsKey);
+            }
+            this.updateTargets(task, spawnExts);
+        }
+
+        let towers = findTowersNeedingEnergy(room);
+        let towersKey = FillEnergyTask.TYPE + '-tower-' + room.name;
+        if (towers.length == 0) {
+            if (tasks.exists(towersKey)) {
+                tasks.terminate(towersKey);
+            }
+        } else {
+            let task = null;
+            if (!tasks.exists(towersKey)) {
+                task = tasks.addTask({
+                    id: towersKey,
+                    type: FillEnergyTask.TYPE,
+                    goal: this.goalId,
+                    score: 96,
+                    minWorkers: 2,
+                    maxWorkers: 2,
+                    assignedWorkers: {}
+                });
+            } else {
+                task = tasks.getById(towersKey);
+            }
+            this.updateTargets(task, towers);
+        }
+    }
+
+
+    updateTargets(task, newTargets) {
+        let targets = {};
+        let oldTargets = task.targetIds;
+        if (oldTargets) {
+            for (let targetId in oldTargets) {
+                let target = Game.getObjectById(targetId);
+                if (target && target.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                    targets[targetId] = true;
+                }
             }
         }
 
+        for(let i=0; i < newTargets.length; i++) {
+            let newTarget = newTargets[i];
+            targets[newTarget.id] = true;
+        }
+        task.targetIds = targets;
     }
+
 
 }
 
